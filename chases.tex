@@ -1,0 +1,784 @@
+\section{Le chaînage avant (\textit{chase})}\label{sec:types_de_chases}
+
+% Le chaînage avant est une stratégie de calcul des réponses à une requête $\mathcal{Q}$. On part du corps d'une règle pour déduire de nouveaux faits présent dans la tête de la règle. Le chaînage avant peut s'appliquer en largeur et en profondeur.
+
+Dans cette partie différents types de chaînages avant vont être présentés. Tout d'abord, il faut distinguer le chaînage en avant en profondeur de celui en largeur : en largeur, on applique chaque règle à partir d'une base de faits $\mathcal{F}_i$ pour obtenir une base de faits $\mathcal{F}_{i+1}$ à partir de laquelle on ré-applique les règles, et ainsi de suite jusqu'à saturation. En profondeur, on applique les règles sur la même base de faits jusqu'à saturation. Dans le cadre de ce projet, on ne s'intéresse qu'au chaînage en avant en largeur.
+\par Mais avant de présenter différentes variantes du chaînage avant en largeur, nous devons construire une base commune à tous ces $chases$ en vue notamment de leur implémentation future. Ainsi, on présente un algorithme de chaînage avant suffisamment générique (section \ref{subsec:algo_base_ch_avant}) pour qu'il soit la base de tous les types de chaînages en avant que nous allons présenter  (section \ref{subsec:types_chases}).
+
+% \begin{definition}[chaînage avant en largeur]
+% A chaque itération du chaînage avant, toutes les règles candidates sont déclenchées.
+% \end{definition}
+
+% \begin{definition}[chaînage avant en profondeur]
+% A chaque itération du chaînage avant, seule la première règle candidate est déclenchée.
+% \end{definition}
+
+% \begin{definition}[Saturation d'une base de faits]
+% Soit une base de connaissances $\mathcal{K} = (\mathcal{F}, \mathcal{R})$. Saturer $\mathcal{F}$
+% consiste à calculer la base de faits saturée $\mathcal{F^*}$ obtenue en appliquant de manière itérative les règles de $\mathcal{R}$ sur $\mathcal{F}$ jusqu'à stabilité (on ne déduit pas de nouveaux faits).   
+% \end{definition}
+
+%\begin{definition}[Saturation finie/infinie]
+%\par On dit que si la saturation $\mathcal{F}^*$ est finie alors il existe $k \in \mathbb{N}$ borné tel que $\mathcal{F}_k$ = $\mathcal{F^*}$.
+%De même on dit que si la saturation $\mathcal{F^*}$ est infinie alors il n'existe pas de borne pour un tel $k$.   
+%\end{definition}
+
+% \begin{definition}[Modèle universel]
+% Si il existe un modèle universel $\mathcal{M}$ pour une base de connaissance $\mathcal{K}$ alors, tout modèle $\mathcal{M}_i$ de $\mathcal{K}$ admet un homomorphisme $h$ tel que $h(\mathcal{M}_i)$ = $\mathcal{M}$.   
+
+%\end{definition}
+
+\subsection{Algorithme de base}\label{subsec:algo_base_ch_avant}
+
+Commençons tout d'abord par définir la notion de déclencheur (ou \textit{trigger}) : il s'agit d'un couple $(R = B \rightarrow H,h)$ où $R$ est une règle et $h$ un homomorphisme permettant d'envoyer $B$, le corps de la règle $R$, sur la base de faits.
+\par Un déclencheur est dit nouveau si il n'a pas été trouvé lors d'une étape précédente du chaînage avant en largeur.
+\par Il est dit applicable si il respecte le critère d'applicabilité, qui diffère en fonction du type de chaînage en avant. La variation du critère d'applicabilité d'une règle n'a d'intérêt que pour les règles existentielles. En effet, avec les règles Datalog, les chaînages avant s'arrêtent toujours tandis que l'arrêt avec les règles existentielles varie en fonction des critères d'applicabilité des règles utilisés.
+\par Une extension locale est un algorithme qui prend en paramètre les nouveau faits de l'étape en cours et un déclencheur applicable et qui produit des nouveaux faits à partir du déclencheur pour les ajouter aux nouveaux faits de l'étape en cours - cet algorithme varie en fonction du type de \textit{chase}.
+\par Une extension globale est un algorithme prenant en paramètre la base de faits de l'étape précédente et les nouveaux faits de l'étape en cours et qui produit la base de faits de l'étape en cours - il varie lui aussi en fonction du type de \textit{chase}.
+\par Ceci posé, on peut décrire notre algorithme de chainage avant en largeur.
+
+\begin{definition}[Chaînage avant en largeur]
+Soit une base de connaissances $\mathcal{KB} = (\mathcal{F}_0, \mathcal{R})$. Un chaînage avant en largeur consiste, à partir d'une base de faits $\mathcal{F}_i$ à générer une base de faits $\mathcal{F}_{i+1}$ en :
+\begin{itemize}
+    \item Ajoutant le contenu de $\mathcal{F}_{i}$ à $\mathcal{F}_{i+1}$ .
+    \item Pour chaque règle $R = B \rightarrow H \in \mathcal{R}$, trouver tous les nouveaux déclencheurs $(R,h(B))$ tels que $h(B) \vDash \mathcal{F}_i$ 
+    \item Tester si le déclencheur $(R,h(B))$ est applicable, et si il l'est, faire une extension locale des nouveaux faits $h(H)$.
+    \item Une fois toutes les règles appliquées, réaliser l'extension globale.
+\end{itemize}
+\end{definition}
+
+\par
+L'algorithme \ref{algo:chainage_avant_largeur} présente un chaînage avant en largeur général.
+% \par De même, l'algorithme \ref{algo:chainage_avant_largeur} n'explique comment la base de faits est étendue à chaque étape, cela est précisé dans l'algorithme \ref{algo:etendre_general} pour tous les chaînages avant à l'exception de certains comme le \textit{core chase} qui a sa propre méthode d'extension de la base de faits.
+% \par De même, lors de chaque application de règle, il y a une extension dite locale consistant à sélectionner les nouveaux faits qui seront fournis à l'extension globale. La version par défaut est l'algorithme \ref{algo:etendre_local_defaut}.
+
+%\paragraph{Homomorphisme sûr} Un homomorphisme $h^s$ est une extension d'un homomorphisme $h$ consistant à remplacer les variables de l'ensemble d'atomes sur lequel est appliqué $h^s$ par des noms de variables "frais", autrement dit des noms de variables n'existant pas encore dans la base de faits que l'on sature.
+%\newline
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:chainage_avant_largeur}
+\caption{Chaînage avant en largeur}
+\SetAlgoLined
+\DontPrintSemicolon
+
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{une base de faits $\mathcal{F}$, une base de règles $\mathcal{R}$}
+\Output{la base de faits saturée $\mathcal{F^*}$}
+\SetKwRepeat{Do}{faire}{tant que}
+
+$\mathcal{F}_0 \gets \mathcal{F}$\;
+$n \gets 0$\;
+
+\Do{$nouvFait \not= \emptyset$}
+{
+    $nouvFaits\gets \emptyset$ \;
+    \ForEach{règle : $ R = B \rightarrow  H \in \mathcal{R}$} 
+    {
+        \ForEach{nouveau déclencheur $(R,h)$ tel que $h : B \mapsto \mathcal{F}_n$} 
+        {
+            \uIf{$estApplicable(R,h)$}
+            {
+                $nouvFaits \leftarrow \mbox{\textit{étendreLocalement}}(nouvFaits, (R,h))$\;
+            }
+        }
+    }
+    $\mathcal{F}_{n+1} \gets \mbox{\textit{étendreLocalement}}(\mathcal{F}_{n}, nouvFaits)$\;
+    $n \gets n + 1$\;
+}
+\Return $\mathcal{F}_n$
+\end{algorithm}
+\setstretch{1.5}
+
+% \paragraph{}
+% L'algorithme de chaînage avant est une application itérative de règles, à chaque étape on applique chaque règle respectant les contraintes et on continue à la prochaine étape jusqu'à ce qu'il n'y ait plus des règles applicables. Il est important de remarquer que si une règle est applicable à l'étape $I_n$ par rapport à un homomorphisme $h$ elle sera aussi applicable à l'étape $I_{n+1}$. Pour éviter cette situation qui nous emmènerait à boucler à l'infini l'algorithme de chaînage avant n'applique une règle $R$ par rapport à un homomorphisme $h$ qu'une seule fois.\newline
+
+Pour les extensions globales et locales, il est possible d'écrire des algorithmes génériques qui conviendront à la plupart des types de chaînage avant qui vont être présentés, à quelques exceptions près. On fournit donc un algorithme d'extension locale par défaut (algorithme \ref{algo:etendre_local_defaut}) et un algorithme d'extension globale par défaut (algorithme \ref{algo:etendre_general}).
+\par Pour l'algorithme d'extension locale, il convient d'expliquer comment on obtient les nouveaux faits à partir d'un déclencheur. Soit une règle $R = B \rightarrow H$ et un déclencheur applicable $(R,h)$ tel que $h : B \mapsto \mathcal{F}$ où $\mathcal{F}$ est la base de faits. Les nouveaux faits sont le résultat de $h^{safe}(H)$ où $h^{safe}$ est une substitution obtenue à partir de $h$ où chaque variable de $H$ qui n'est pas remplacée dans $h$ est remplacée par une variable fraîche, c'est-à-dire une variable qui n'a pas encore été utilisée dans la base de faits.
+
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:etendre_local_defaut}
+\caption{étendreLocalement (par défaut)}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{
+   $nouvFaits$ : les nouveaux faits de l'étape en cours
+    \par $(R = B \rightarrow H,h)$ : le déclencheur à appliquer}
+\Output{l'extension de $nouvFaits$}
+    \Return $nouvFaits \cup h^{safe}(H)$\;
+\end{algorithm}
+\setstretch{1.5}
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:etendre_general}
+\caption{étendreGlobalement (par défaut)}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{une base de faits $\mathcal{F}$, une liste de faits $nouvFaits$}
+\Output{la base de faits $\mathcal{F'}$ étendue}
+    $\mathcal{F'} \gets \mathcal{F} \cup nouvFaits$\;
+    \Return $\mathcal{F'}$
+\end{algorithm}
+\setstretch{1.5}
+
+Maintenant que la base commune aux différents types de \textit{chase} a été posée, on va pouvoir les présenter.
+
+\subsection{Types de \textit{chases}}\label{subsec:types_chases}
+
+Cette partie a pour objet de présenter tous les chases qui ont été implémentés dans le cadre du projet.
+\par Quatres de ces chases sont "classiques" dans la littérature scientifique du domaine. Dans l'ordre de leur capacité à éviter les redondances : l'\textit{oblibious chase} (\ref{sec:oblivious_chase}), le \textit{semi-oblivious chase} (\ref{sec:semi_oblivious_chase}), le \textit{restricted chase} (\ref{sec:restricted_chase}) et le \textit{core chase} (\ref{sec:core_chase}). 
+\par Deux autres chases, proposés par Stathis Delivorias, un doctorant de l'équipe GraphiK, vont aussi être présentés : le \textit{local core chase} (\ref{sec:local_core_chase}) et le \textit{vacuum chase} (\ref{sec:vacuum_chase}).
+
+\subsubsection{L'Oblivious \textit{chase}}\label{sec:oblivious_chase}
+
+L'\textit{oblivious chase} est le type de chaînage avant générant le plus de redondances. Il ne fait en effet aucun filtre pour les éliminer : un déclencheur est considéré comme étant toujours applicable (algorithme \ref{algo:est_applicable_oblivious}).
+\par Ce faisant, ses propriétés d'arrêt sont médiocres sur les règles existentielles, et il est donc facile de trouver des cas où l'algorithme ne s'arrête pas.
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:est_applicable_oblivious}
+\caption{estApplicable (Oblivious)}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKw{Break}{break}
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{Un déclencheur $(R,h)$}
+\Output{vrai si le déclencheur $(R,h)$ est applicable}
+\Return $vrai$
+\end{algorithm}
+\setstretch{1.5}
+
+Pour illustrer cet algorithme prenons un exemple où il s'arrête : soit la base de connaissances $\mathcal{KB}_A = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R = p(x,y) \rightarrow q(x,z) \})$.
+\begin{center}
+\begin{tabular}{|c|c|}
+    \hline
+    Étape & Base de faits  \\ 
+    \hline
+    1 &$\mathcal{F} \cup \{q(a, z_1)\}$ \\ 
+    \hline
+    2 &$\mathcal{F}_1$  \\
+    \hline
+\end{tabular}
+\end{center}
+On constate que l'algorithme s'arrête à la deuxième étape.
+\par Prenons un exemple ou l'\textit{oblivious chase} ne s'arrête pas. Soit
+$\mathcal{KB}_B = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R = p(x,y) \rightarrow p(x,z) \})$
+
+\begin{center}
+\begin{tabular}{|c|c|}
+    \hline
+    Étape & Base de faits  \\ 
+    \hline
+    1 &$\mathcal{F} \cup \{p(a, z_1)\}$ \\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(a, z_2)\}$ \\
+    \hline
+    ... & ... \\
+    \hline
+    $i+1$ & $\mathcal{F}_i \cup \{p(a, z_{i+1})\} $ \\
+    \hline
+\end{tabular}
+\end{center}
+
+On constate bien que la saturation ne s'arrête jamais : la règle produit un atome redondant qui permet de la ré-appliquer à l'infini. Le \textit{semi-oblivious chase} va permettre d'éviter que l'algorithme ne s'arrête pas dans ce type de cas.
+
+\subsubsection{Le \textit{semi-oblivious chase}}\label{sec:semi_oblivious_chase}
+
+%L'algorithme du Semi-Oblivious \textit{chase} est très proche de l'Oblivious Chase, comme ce dernier il n'applique une règle $R$ par rapport à un homomorphisme $h$ qu'une seule fois, mais en plus il compare aussi les frontières de l'homomorphisme $h$ avec les frontières des éléments de la base de faits. Si il en trouve des identiques alors $h$ n'est pas ajouté à la base de faits.%
+
+% \begin{definition}[Déclencheur]
+% Soit une base de connaissances $\mathcal{K} = (\mathcal{F}, \mathcal{R})$ et $R$ une règle tel que $R \in \mathcal{R}$ de la forme $B \rightarrow  H$.
+% Un couple $(R,h)$ est un déclencheur pour $\mathcal{F}$ si $h$ est un homomorphisme de $B$ dans $\mathcal{F}$.
+% \end{definition}
+
+L'algorithme du Semi-Oblivious \textit{chase} a un critère d'applicabilité plus strict que l'\textit{oblivious chase} (algorithme \ref{algo:est_applicable_semi_oblivious}). En effet, on va stocker les déclencheurs des applications précédentes pour pouvoir les comparer aux déclencheurs en cours d'application.
+\par On retient donc une liste $L$ de tous les déclencheurs appliqués précédemment. Lorsque l'on veut tester si un déclencheur $(R,h)$ est applicable, alors on recherche dans $L$ si il existe un déclencheur $(R,g)$ tel que $h(frontier(R)) = g(frontier(R))$. Si c'est le cas, la règle n'est pas applicable, sinon elle l'est.
+\par L'idée ici est que, si les substitutions $h$ et $g$ envoient la frontière sur les mêmes variables, alors les atomes produits par $h^{safe}(H)$ seront forcément redondants par rapport à ceux de $g^{safe}(H)$ car ils seront isomorphes.
+
+\begin{proposition}
+    Si l'\textit{oblivious chase} s'arrête, alors le \textit{semi-oblivious} s'arrête aussi.
+\end{proposition}
+
+\begin{proof} Le \textit{semi-oblivious chase} a une condition sur la frontière en plus il aura donc au pire la même efficacité que l'\textit{oblivious}.
+\end{proof}
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:est_applicable_semi_oblivious}
+\caption{estApplicable (Semi-Oblivious)}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKw{Break}{break}
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{$(R,h)$ : le déclencheur à tester
+\par $L$ : la liste des déclencheurs précédemment appliqués}
+\Output{vrai si le déclencheur $(R,h)$ est applicable, faux sinon}
+    \uIf{il existe $(R,g) \in L$ tel que $h(frontier(R)) = g(frontier(R))$}
+    {
+        \Return faux
+    }
+\Return $vrai$
+\end{algorithm}
+\setstretch{1.5}
+Illustrons maintenant l'algorithme en reprenant l'exemple où l'\textit{oblivious chase} ne s'arrête pas.
+\par Soit $\mathcal{KB}_B = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R = p(x,y) \rightarrow p(x,z) \})$
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+    \hline
+    $\mathcal{F}$ & Oblivious & Semi-oblivious \\ 
+    \hline
+    1 &$\mathcal{F} \cup \{p(a, z_1)\}$ & $\mathcal{F} \cup \{p(a, z_1)\} $\\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(a, z_2)\}$ &$\mathcal{F}_1$\\
+    \hline
+    ... & ... & \\
+    \hline
+    $i+1$ & $\mathcal{F}_i \cup \{p(a, z_{i+1})\} $& \\
+     \hline
+     ... & ... & \\
+     \hline
+\end{tabular}
+\end{center}
+
+Ici, le semi-oblivious chase termine la saturation lors de la deuxième étape car le seul nouveau délencheur trouvé $(R,\{x \rightarrow a$, $y \rightarrow z_1\})$ a le même effet sur la frontière (qui ne contient que $x$) que le déclencheur $(R,\{x \rightarrow a$, $y \rightarrow b\})$ appliqué lors de la première étape.  
+
+\par Cependant, c'est un algorithme pour lequel il reste facile de trouver des exemples dans lesquels il ne s'arrête pas.
+Soit $\mathcal{KB}_C = (\mathcal{F} = \{p(a,a)\}, \mathcal{R} = \{R = p(x,y) \rightarrow p(y,z) \})$
+
+\begin{center}
+\begin{tabular}{|c|c|}
+    \hline
+    $\mathcal{F}$ & Semi-oblivious \\ 
+    \hline
+    1  & $\mathcal{F} \cup \{p(a, z_1)\} $ \\ 
+    \hline
+    2  &$\mathcal{F}_1 \cup \{p(z_1, z_2)\}$  \\
+    \hline
+    ...  & ...  \\
+    \hline
+    i+1 & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $   \\
+     \hline
+     ...  & ...  \\
+     \hline
+\end{tabular}
+\end{center}
+C'est pour cela que l'on va introduire le \textit{restricted chase}.
+
+\subsubsection{Le \textit{restricted chase}}\label{sec:restricted_chase}
+
+Le \textit{restricted chase} a une approche différente pour éviter les redondances. Pour décider si un déclencheur $(R = B \rightarrow H,h)$ est applicable, on va tester l'existence d'une substitution $h'$ telle que $h \subset h'$ et $h'(H) \in \mathcal{F}$, $\mathcal{F}$ étant la base de faits. Si un tel $h'$ existe, alors on n'applique pas le déclencheur. L'idée ici est que, si $h'$ existe, alors les atomes produits à l'aide de ce déclencheur seront forcément redondants par rapport à la base de faits puisque il existe des atomes équivalents au nom des variables près.
+\par Le critère du \textit{restricted chase} est plus puissant que celui du \textit{semi-oblivious chase}. En effet, dans le \textit{semi-oblivious chase}, si il existe un déclencheur ayant le même effet sur la frontière de la règle qu'un déclencheur appliqué précédemment, alors ce déclencheur précédent a produit des atomes qui sont dans la base de faits et par rapport auxquels le nouveau déclencheur produira forcément des atomes redondants, que le critère du \textit{restricted chase} sera en mesure de détecter. Par conséquent, si un \textit{semi-oblivious chase} s'arrête, alors le \textit{restricted chase} s'arrête aussi.
+\par Concernant le critère d'applicabilité, il y a deux façons de l'utiliser : soit la base de faits sur laquelle on fait le test est la base de faits courante de l'étape en cours ($\mathcal{F}_n$), et dans ce cas on dira que le \textit{restricted chase} est parallèle (algorithme \ref{algo:est_applicable_restricted_parallel}). Soit il s'agit de base de faits courante à laquelle on ajoute les nouveaux faits produits dans l'étape en cours ($\mathcal{F}_n \cup nouvFaits$) et dans ce cas, on parlera de \textit{restricted chase} en largeur (algorithme \ref{algo:est_applicable_restricted_largeur}).
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:est_applicable_restricted_parallel}
+\caption{estApplicable (\textit{restricted chase} en parallèle)}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{$(R,h)$ : le déclencheur à tester
+\par $\mathcal{F}_n$ : la base de faits courante }
+\Output{vrai si le déclencheur $(R,h)$ est applicable, faux sinon}
+    \uIf{il existe $h'$ tel que $h \subset h'$ et $h'(H) \in \mathcal{F}$}
+    {
+        \Return $faux$
+    }
+\Return $vrai$
+\end{algorithm}
+\setstretch{1.5}
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:est_applicable_restricted_largeur}
+\caption{estApplicable (\textit{restricted chase} en largeur)}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{$(R,h)$ : le déclencheur à tester
+\par $\mathcal{F}_n$ : la base de faits courante
+\par $nouvFaits$ : les nouveaux faits obtenus durant l'étape courante}
+\Output{vrai si le déclencheur $(R,h)$ est applicable, faux sinon}
+    \uIf{il existe $h'$ tel que $h \subset h'$ et $h'(H) \in \mathcal{F} \cup nouvFaits$}
+    {
+        \Return $faux$
+    }
+\Return $vrai$
+\end{algorithm}
+\setstretch{1.5}
+
+\par La version largeur est susceptible de produire moins de redondances que la version parallèle, car elle peut permettre d'éviter des redondances produites par d'autres règles durant la même étape. Cependant, elle présente le défaut d'être non-déterministe : en effet, le résultat du chaînage avant va différer en fonction de l'ordre d'application des règles, comme cela est illustré dans l'exemple \ref{ex:restricted_largeur_non_deterministe}.
+
+\begin{example}
+% oblivious , expl 3
+$\mathcal{KB}_C = (\mathcal{F} = \{p(a,a)\}, \mathcal{R} = \{R = p(x,y) \rightarrow p(y,z) \})$
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    $\mathcal{F}$ & Oblivious & Semi-oblivious & Restricted \\ 
+    \hline
+    1 &$\mathcal{F} \cup \{p(a, z_1)\}$ & $\mathcal{F} \cup \{p(a, z_1)\} $&  $\mathcal{F}$ \\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(z_1, z_2)\}$ &$\mathcal{F}_1 \cup \{p(z_1, z_2)\}$ & \\
+    \hline
+    ... & ... & ... & \\
+    \hline
+    i+1 & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $& $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $&   \\
+     \hline
+     ... & ... & ... & \\
+     \hline
+\end{tabular}
+\end{center}
+\end{example}
+
+Ici, le \textit{restricted chase} termine la saturation lors de la première étape étape car le seul homomorphisme trouvé $h = (x \rightarrow a, y \rightarrow a)$ peut être étendu en $h' = (x \rightarrow a, y \rightarrow a, z \rightarrow a)$ tel que $h'(p(y,z)) = p(a,a) \in \mathcal{F}$. 
+
+\begin{example}\label{ex:restricted_largeur_non_deterministe}
+% oblivious , expl 4
+$\mathcal{KB}_D = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R_1 = p(x,y) \rightarrow p(y,z) , R_2 = p(x,y) \rightarrow p(y,y) \})$
+
+\begin{center}
+% \begin{tabular}{|c|c|c|}
+%     \hline
+%     $\mathcal{F}$ & Oblivious & Semi-oblivious \\ 
+%     \hline
+%     1 &$\mathcal{F} \cup \{p(b, z_1), p(b,b)\}$ & $\mathcal{F} \cup \{p(b, z_1), p(b,b)\} $\\ 
+%     \hline
+%     2 &$\mathcal{F}_1 \cup \{p(z_1, z_2), p(z_1, z_1), p(b, z_3)\}$ &$\mathcal{F}_1 \cup \{p(z_1, z_2), p(z_1, z_1)\}$  \\
+%     \hline
+%     ... & ... & ...  \\
+%     \hline
+%     i+1 & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1}), p(z_{i}, z_{i}), p(z_{i-1}), p(z_{i+2}), ...\} $& $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1}), p(z_{i}, z_{i})\} $ \\
+%      \hline
+%      ... & ... & ... \\
+%      \hline
+% \end{tabular}
+\begin{tabular}{|c|c|c|c|c|}
+    \hline
+    $\mathcal{F}$ & \textit{restricted chase} en parallèle & \textit{restricted chase} en largeur ($R_1$ / $R_2$) & \textit{restricted chase} en largeur ($R_2$ / $R_1$)  \\ 
+    \hline
+    1 &  $\mathcal{F} \cup \{p(b, z_1), p(b,b)\} $ &  $\mathcal{F} \cup \{p(b, z_1), p(b,b)\} $ & $\mathcal{F} \cup \{p(b,b)\}$ \\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(z_1, z_2), p(z_1, z_1)\}$ &$\mathcal{F}_1 \cup \{p(z_1, z_2), p(z_1, z_1)\}$& $\mathcal{F}_1$ \\
+    \hline
+    ... & ... & ... &  \\
+    \hline
+    i+1 &  $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1}), p(z_{i}, z_{i})\} $   &  $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1}), p(z_{i}, z_{i})\} $  & \\
+     \hline
+     ... & ... &  ... &  \\
+     \hline
+\end{tabular}
+\end{center}
+\end{example}
+
+Dans cet exemple, l'ordre d'application des règles modifie le résultat de la saturation. Lorsque l'on utilise l'ordre $R_1$/$R_2$ la saturation est infinie, alors qu'avec l'ordre $R_2$/$R_1$, la saturation se termine lors de la deuxième étape. Le \textit{restricted chase} en parallèle donne le même résultat que celui en largeur avec l'ordre $R_1$/$R_2$.
+\par Cet exemple nous permet aussi de constater que le \textit{restricted chase} est lui-aussi susceptible de produire des redondances et de ne pas s'arrêter pour cette raison. Le type de \textit{chase} qui suit ne produit quant à lui aucune redondance.
+
+\subsubsection{Core chase}\label{sec:core_chase}
+
+Le \textit{core chase} est un chaînage avant qui consiste, lors de chaque étape en largeur, à calculer le \textit{core} de la base faits courante afin de supprimer toute redondance (algorithme \ref{algo:etendre_core_chase}).
+Cela a pour conséquence que, si une base de connaissances possède un modèle universel fini, alors le \textit{core chase} s'arrête en un nombre fini d'étapes.
+\par Le \textit{core chase} utilise l'applicateur de règles du \textit{restricted chase}. Autant la version parallèle que celle en largeur peuvent être utilisées : en effet, il n'y a pas de problème de résultat modifié par l'ordre d'application des règles puisque toutes les redondances sont supprimées. Le résultat d'une étape sera toujours isomorphe au résultat de la même étape obtenu avec un autre ordre d'application des règles.
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:etendre_core_chase}
+\caption{étendreGlobalement (\textit{core chase})}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{$\mathcal{F}$ : la base de faits à étendre
+\par $nouvFaits$ : nouveaux faits produits durant l'étape courante}
+\Output{la base de faits $\mathcal{F'}$ étendue}
+    $\mathcal{F'} \gets \mathcal{F} \cup nouvFaits$\;
+    $\mathcal{F'} \gets Core(\mathcal{F'})$\;
+    \Return $\mathcal{F'}$
+\end{algorithm}
+
+\begin{example}
+% oblivious , expl 4
+$\mathcal{KB}_D = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R_1 = p(x,y) \rightarrow p(y,z) , R_2 = p(x,y) \rightarrow p(y,y) \})$
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    $\mathcal{F}$ & Restricted parallèle & Core \\ 
+    \hline
+    1 &  $\mathcal{F} \cup \{p(b, z_1), p(b,b)\} $ & $\mathcal{F} \cup \{ p(b,b)\}$\\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(z_1, z_2), p(z_1, z_1)\}$ & $\mathcal{F}_1$ \\
+    \hline
+    ... & ... & \\
+    \hline
+    i+1 &  $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1}), p(z_{i}, z_{i})\} $  & \\
+     \hline
+     ... &  ...  & \\
+     \hline
+\end{tabular}
+\end{center}
+\end{example}
+
+Contrairement au \textit{restricted chase} en parallèle, dans cet exemple, la saturation avec le \textit{core chase} se termine, et en seulement deux étapes. Cette différence est due au fait que $p(b, z_1)$ est enlevé de la base faits lors du calcul du \textit{core}, car il est redondant par rapport à $p(b, b)$.
+
+%exemple 5 
+\begin{example}
+$\mathcal{KB}_E = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R = p(x,y) \rightarrow p(y,z) \})$
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+    \hline
+    $\mathcal{F}$ & O & SO & R & Core \\ 
+    \hline
+    1 & $\mathcal{F} \cup \{p(b, z_0)\} $& $\mathcal{F} \cup \{p(b, z_0)\}$ &  $\mathcal{F} \cup \{p(b, z_0)\}$ &  $\mathcal{F} \cup \{p(b, z_0)\}$\\
+    \hline
+    2 & $\mathcal{F}_1 \cup \{p(z_0, z_1)\}$ & $\mathcal{F}_1 \cup \{p(z_0, z_1)\} $& $\mathcal{F}_1 \cup \{p(z_0, z_1)\}$ & $\mathcal{F}_1 \cup \{p(z_0, z_1)\}$\\ 
+    \hline
+    3 & $\mathcal{F}_2 \cup \{p(z_1, z_2)\}$ & $\mathcal{F}_2 \cup \{p(z_1, z_2)\}$ &  $\mathcal{F}_2 \cup \{p(z_1, z_2)\}$ & $\mathcal{F}_2 \cup \{p(z_1, z_2)\}$\\ 
+    \hline
+    ... &... & ... & ... & ...\\
+    \hline
+    i+1 & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $& $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $& $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $  & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $\\
+    \hline
+    ... &... & ... & ... & ...\\
+    \hline
+    %\mathcal{F}_2 = \mathcal{F}_1 \cup \{p(a, z_2)\} & \mathcal{F}_2 = \mathcal{F}_1 & &\\
+    %\hline
+    %\mathcal{F}_{i+1} = \mathcal{F}_i \cup \{p(a, z_{i+1})\} &  & & \\
+     %\hline
+\end{tabular}
+\end{center}
+\end{example}
+
+La base de faits $\mathcal{KB}_E$ ne possède pas de modèle fini et de ce fait, aucun des algorithmes de chaînage avant ne termine.
+
+\par Si le \textit{core chase} possède d'excellentes propriétés d'élimination des redondances, il est souvent plus lent que les algorithmes présentés précédemment, hormis dans les cas où les autres types de chaînage avant ne s'arrêtent pas. En effet, le calcul du \textit{core} est une opération coûteuse : il s'agit d'un problème co-NP-complet. À cela s'ajoute le fait que ce calcul est effectué sur la base de faits entière, dont la taille peut vite devenir importante lors de la saturation.
+\par C'est pour essayer de palier à ce défaut que les deux algorithmes qui suivent ont été imaginés. Il s'agit d'essayer de trouver un compromis entre propriétés de suppression des redondances (et donc aussi d'arrêt du chaînage avant) et vitesse de saturation.
+
+\subsubsection{\textit{Local core chase}}\label{sec:local_core_chase}
+
+Le \textit{local core chase} est aussi un chaînage avant qui fait appel à un calcul du \textit{core}, mais de manière plus restreinte. En effet, lors de l'extension globale, au lieu de simplement calculer le \textit{core} de la base de faits, on va d'abord geler la base de faits (c'est-à-dire transformer les variables en constantes), y ajouter les nouveaux faits pour ensuite faire le calcul du \textit{core} et enfin dégeler les variables (algorithme \ref{algo:etendre_local_core_chase}).
+\par Le gel des variables va avoir pour conséquence que les éléments pré-existants dans la base de faits ne pourront subir de repliement, seules les redondances se trouvant dans les nouveaux faits pourront être supprimées.
+\par Comme pour le \textit{core chase}, le critère d'applicabilité est celui du \textit{restricted chase}.
+
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:etendre_local_core_chase}
+\caption{étendreGlobalement (\textit{local core chase})}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{une base de faits $\mathcal{F}$, une liste de faits $nouvFaits$}
+\Output{la base de faits $\mathcal{F'}$ étendue}
+% freeze -> union -> Core -> defreeze
+	$\mathcal{F'} \gets freeze(\mathcal{F}, nouvFaits)$\;
+    $\mathcal{F'} \gets core(\mathcal{F'})$\;
+    \Return $unfreeze(\mathcal{F'})$
+\end{algorithm}
+
+\subsubsection{Vacuum Chase}\label{sec:vacuum_chase}
+
+\begin{definition}[Dépiécer]
+Il s'agit de l'opération consistant à partitionner un ensemble d'atomes $A$ en l'ensemble des pièces (def. \ref{def:piece_atomes}) contenues dans $A$.
+\end{definition}
+
+Le \textit{vacuum chase} se base sur la notion de pièces d'un ensemble d'atomes. À chaque étape de saturation, on va exécuter les instructions suivantes :
+\begin{itemize}
+    \item Tout d'abord, on va appliquer une règle $R \in \mathcal{R}$ à l'aide du critère d'applicabilité du \textit{restricted chase} parallèle. Soit $A$ les atomes obtenus par l'application de la règle $R$.
+    \item Ensuite, on va dépiécer $A$ et pour chaque pièce ainsi obtenue, on va tester si il existe un homomorphisme de cette pièce vers la base de faits et si tel est le cas, on supprime la pièce. On note $P$ l'ensemble des atomes restant à l'issue de cette étape ;
+    \item Puis, on dépièce la base de faits et pour chaque pièce obtenue, on teste si il existe un homomorphisme de cette pièce vers $P$ et le cas échéant, on supprime cette pièce de la base de faits ; 
+    \item Enfin, on ajoute $P$ à la base de faits où l'on a retiré les pièces pour obtenir la nouvelle base de faits.
+\end{itemize}
+
+\begin{algorithm}[H]\label{algo:vacuum_chase}
+\caption{Vacuum chase}
+\SetAlgoLined
+\DontPrintSemicolon
+
+\SetKwInOut{Input}{entrées}
+\SetKwInOut{Output}{sortie}
+\Input{une base de faits $\mathcal{F}$, une base de règles $\mathcal{R}$}
+\Output{la base de faits saturée $\mathcal{F^*}$}
+\SetKwRepeat{Do}{faire}{tant que}
+
+$\mathcal{F}_0 \gets \mathcal{F}$\;
+$n \gets 0$\;
+
+\Do{$\mathcal{F}_n \not=\mathcal{F}_{n+1}$}
+{
+    $nouvFaits\gets \emptyset$ \;
+    \ForEach{$ R = B \rightarrow  H \in \mathcal{R}$} 
+    {
+        \ForEach{(nouvel) homomorphisme $h$ de $B$ dans $\mathcal{F}_n$} 
+        {
+            \uIf{R est applicable d'après le critère du restricted chase en parallèle}
+            {
+                $A \gets h(H)$\;
+                $piecesRegle \gets \mbox{dépiécer(A)}$\;
+                $P \gets \emptyset$\;
+                
+                \ForEach{$piece \in piecesRegle$}
+                {
+                    \uIf{$\neg\exists$ une extension $g$ de h $: g(piece) \in \mathcal{F}_n$}
+                    {
+                        $P \gets P \cup piece$\;
+                    }
+                }
+                $nouvFaits \gets nouvFaits \cup P$\;
+                
+                $piecesF \gets \mbox{\textit{dépiécer}} (\mathcal{F}_n)$\;
+                
+                $\mathcal{F}_n' \gets \emptyset$\;
+                
+                \ForEach{$piece \in piecesF$}
+                {
+                    \uIf{$\neg\exists g : g(piece) \in P$}
+                    {
+                        $\mathcal{F}_n' \gets \mathcal{F}_n' \cup piece$\;
+                    }
+                }
+                
+               
+                $\mathcal{F}_n \gets \mathcal{F}_n'$\;
+            }
+        }
+    }
+    $\mathcal{F}_{n+1} \gets \mbox{Étendre}(\mathcal{F}_{n}, nouvFaits)$\;
+    $n \gets n + 1$\;
+}
+\Return $\mathcal{F}_n$
+\end{algorithm}
+
+\subsubsection{Comparaison des chaînages avant}
+%%COMMENT
+\begin{comment}
+
+
+
+\begin{example}
+$\mathcal{KB} = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R = p(x,y) \rightarrow q(x,z) \})$
+\begin{center}
+    \begin{tabular}{|c|c|c|c|c|}
+        \hline 
+        $\mathcal{F}$ & Oblivious & Semi-oblivious & Restricted & Core \\
+        \hline 
+        1 & $\mathcal{F} \cup \{q(x,z_1)\}$ & $\mathcal{F} \cup \{q(x,z_1)\}$ & $\mathcal{F} \cup \{q(x,z_1)\}$ & $\mathcal{F} \cup \{q(x,z_1)\}$ \\
+        \hline 
+        2 & $\mathcal{F}_1$ & $\mathcal{F}_1$ & $\mathcal{F}_1$ & $\mathcal{F}_1$ \\
+        \hline 
+    \end{tabular}
+\end{center}
+\end{example}
+
+\begin{example}
+% oblivious , expl 2
+$\mathcal{KB} = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R = p(x,y) \rightarrow p(x,z) \})$
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+    \hline
+    $\mathcal{F}$ & Oblivious & Semi-oblivious & Restricted & Core \\ 
+    \hline
+    1 &$\mathcal{F} \cup \{p(a, z_1)\}$ & $\mathcal{F} \cup \{p(a, z_1)\} $&  $\mathcal{F}$ &  $\mathcal{F}$\\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(a, z_2)\}$ &$\mathcal{F}_1$ & &\\
+    \hline
+    ... & ... & & & \\
+    \hline
+    $i+1$ & $\mathcal{F}_i \cup \{p(a, z_{i+1})\} $&  & & \\
+     \hline
+     ... & ... & & & \\
+     \hline
+\end{tabular}
+\end{center}
+\end{example}
+
+\begin{example}
+% oblivious , expl 3
+$\mathcal{KB} = (\mathcal{F} = \{p(a,a)\}, \mathcal{R} = \{R = p(x,y) \rightarrow p(y,z) \})$
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+    \hline
+    $\mathcal{F}$ & Oblivious & Semi-oblivious & Restricted & Core \\ 
+    \hline
+    1 &$\mathcal{F} \cup \{p(a, z_1)\}$ & $\mathcal{F} \cup \{p(a, z_1)\} $&  $\mathcal{F}$ &  $\mathcal{F}$\\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(z_1, z_2)\}$ &$\mathcal{F}_1 \cup \{p(z_1, z_2)\}$   &$\mathcal{F}_1$& $\mathcal{F}_1$ \\
+    \hline
+    ... & ... & ... & & \\
+    \hline
+    i+1 & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $& $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $&   & \\
+     \hline
+     ... & ... & ... & & \\
+     \hline
+\end{tabular}
+\end{center}
+\end{example}
+
+\begin{example}
+% oblivious , expl 4
+$\mathcal{KB} = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R_1 = p(x,y) \rightarrow p(y,z) , R_2 = p(x,y) \rightarrow p(y,y) \})$
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+    \hline
+    $\mathcal{F}$ & Oblivious & Semi-oblivious \\ 
+    \hline
+    1 &$\mathcal{F} \cup \{p(b, z_1), p(b,b)\}$ & $\mathcal{F} \cup \{p(b, z_1), p(b,b)\} $\\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(z_1, z_2), p(z_1, z_1), p(b, z_3)\}$ &$\mathcal{F}_1 \cup \{p(z_1, z_2), p(z_1, z_1)\}$  \\
+    \hline
+    ... & ... & ...  \\
+    \hline
+    i+1 & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1}), p(z_{i}, z_{i}), p(z_{i-1}), p(z_{i+2}), ...\} $& $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1}), p(z_{i}, z_{i})\} $ \\
+     \hline
+     ... & ... & ... \\
+     \hline
+\end{tabular}
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    $\mathcal{F}$ & Restricted (largeur) R1/R2 & Restricted (largeur) R2/R1 & Core \\ 
+    \hline
+    1 &  $\mathcal{F} \cup \{p(b, z_1), p(b,b)\} $ & $\mathcal{F} \cup \{p(b,b)\}$ & $\mathcal{F} \cup \{ p(b,b)\}$\\ 
+    \hline
+    2 &$\mathcal{F}_1 \cup \{p(z_1, z_2), p(z_1, z_1)\}$& $\mathcal{F}_1$ & $\mathcal{F}_1$ \\
+    \hline
+    ... & ... & & \\
+    \hline
+    i+1 &  $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1}), p(z_{i}, z_{i})\} $  && \\
+     \hline
+     ... &  ... & & \\
+     \hline
+\end{tabular}
+\end{center}
+\end{example}
+
+%exemple 5 
+\begin{example}
+$\mathcal{KB} = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R = p(x,y) \rightarrow p(y,z) \})$
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+    \hline
+    $\mathcal{F}$ & O & SO & R & Core \\ 
+    \hline
+    1 & $\mathcal{F} \cup \{p(b, z_0)\} $& $\mathcal{F} \cup \{p(b, z_0)\}$ &  $\mathcal{F} \cup \{p(b, z_0)\}$ &  $\mathcal{F} \cup \{p(b, z_0)\}$\\
+    \hline
+    2 & $\mathcal{F}_1 \cup \{p(z_0, z_1)\}$ & $\mathcal{F}_1 \cup \{p(z_0, z_1)\} $& $\mathcal{F}_1 \cup \{p(z_0, z_1)\}$ & $\mathcal{F}_1 \cup \{p(z_0, z_1)\}$\\ 
+    \hline
+    3 & $\mathcal{F}_2 \cup \{p(z_1, z_2)\}$ & $\mathcal{F}_2 \cup \{p(z_1, z_2)\}$ &  $\mathcal{F}_2 \cup \{p(z_1, z_2)\}$ & $\mathcal{F}_2 \cup \{p(z_1, z_2)\}$\\ 
+    \hline
+    ... &... & ... & ... & ...\\
+    \hline
+    i+1 & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $& $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $& $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $  & $\mathcal{F}_i \cup \{p(z_{i}, z_{i+1})\} $\\
+    \hline
+    ... &... & ... & ... & ...\\
+    \hline
+    %\mathcal{F}_2 = \mathcal{F}_1 \cup \{p(a, z_2)\} & \mathcal{F}_2 = \mathcal{F}_1 & &\\
+    %\hline
+    %\mathcal{F}_{i+1} = \mathcal{F}_i \cup \{p(a, z_{i+1})\} &  & & \\
+     %\hline
+\end{tabular}
+\end{center}
+\end{example}
+\end{comment}
+%END COMMENT
+
+\begin{example}
+\par
+$\mathcal{KB} = (\mathcal{F} = \{r(a)\}, \mathcal{R} = \{R1 = r(x) \rightarrow p(x,z) , R2 = p(x,y) \rightarrow p(x,z), p(z,z) ,R3 = p(x,y) \rightarrow p(y,z) \})$ (voir figure \ref{fig:ex_local_core}) \\
+\begin{figure}[H]
+    \centering
+    \caption{Local core chase}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,semithick]
+  \tikzstyle{every state}=[circle,text=black,minimum size=0.1cm]
+
+  \node[state] 						(A)              {$a:r$};
+  \node[state]      			   	(B) [right of=A] {$Z_1$};
+  \node[state]         				(C) [right of=B] {$Z_4$};
+  \node[state]			    		(D) [below of=A] {$Z_2$};
+  \node[state]			    		(E) [below of=B] {$Z_3$};
+  \node[state]			    		(F) [below of=C] {$Z_5$};
+  \node[state]			    		(G) [below of=E] {$Z_6$};
+  \node[state]			    		(H) [below of=F] {$Z_7$};
+
+  \path (A) edge              					node 		{$p$} 	(B)
+            edge              					node 		{$p$} 	(D)
+        (B) edge 			 					node 		{$p$} 	(E)
+            edge              					node 		{$p$} 	(C)
+        (C) edge [out=60,in=120,looseness=6]    node[above] {$p$} 	(C)
+        (D) edge [out=320,in=40,looseness=6]	node[right] {$p$} 	(D)
+        
+        (E) edge 								node 		{$p$} 	(F)
+        	edge 			 					node 		{$p$} 	(G)
+        (F) edge 								node 		{$p$} 	(H)
+        (G) edge [out=320,in=40,looseness=6]	node[right] {$p$} 	(G);
+\end{tikzpicture}
+\label{fig:ex_local_core}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Core chase}
+    \vspace{11pt}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,semithick]
+  \tikzstyle{every state}=[circle,text=black,minimum size=0.1cm]
+
+  \node[state] 						(A)              {$a:r$};
+  \node[state]			    		(D) [below of=A] {$Z_2$};
+
+  \path (A) edge              					node 		{$p$} 	(D)
+
+        (D) edge [out=320,in=40,looseness=6]	node[right] {$p$} 	(D);
+\end{tikzpicture}
+\label{fig:ex_core}
+\end{figure}
+
+$h= \{(a,a),(z_2,z_2),(z_1,z_2),(z_3,z_2) \}$
+
+\begin{center}
+\begin{tabular}{|c|c|}
+    \hline
+    $\mathcal{F}$ & Atomes \\ 
+    \hline
+    1 & $\mathcal{F} \cup \{p(a, z_1)\} $\\
+    \hline
+    2 & $\{r(a),p(a, z_2),p(z_2, z_2)\} $\\
+    \hline
+    %\mathcal{F}_2 = \mathcal{F}_1 \cup \{p(a, z_2)\} & \mathcal{F}_2 = \mathcal{F}_1 & &\\
+    %\hline
+    %\mathcal{F}_{i+1} = \mathcal{F}_i \cup \{p(a, z_{i+1})\} &  & & \\
+     %\hline
+\end{tabular}
+\end{center}
+
+
+
+\end{example}
+%%%%%%%%%%%%%%%%%%COMMENTE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{comment}
+\begin{tikzpicture}[->,>=stealth,shorten >=1pt,auto,node distance=4cm,
+                thick,main node/.style={circle,draw,font=\Large\bfseries}]
+  \node[main node] (1) {$a$};
+  \node[main node] (2) [below left of=1] {$Z_0$};
+  \node[main node] (3) [below right of=1] {$Z_1$};
+  \node[main node] (4) [below of=2] {$Z_2$};
+
+  \path
+    (1) edge [loop above] node {r} (1)
+        edge node {p} (3)
+        edge node {p} (2)
+    (2) edge node {p} (4)
+    (3) edge [loop right] node {p} (3)
+\end{tikzpicture}
+\end{comment}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

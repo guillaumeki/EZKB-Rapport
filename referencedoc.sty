@@ -1,0 +1,92 @@
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{float}
+\usepackage{calrsfs}
+\usepackage{tikz}
+\usepackage{stmaryrd}
+\usepackage{fancyhdr}
+\usepackage[inline]{asymptote} 
+\usepackage[linesnumbered,ruled,french,onelanguage]{algorithm2e}
+\usepackage{hyperref}
+\usepackage{float}
+\SetKwComment{Comment}{$\triangleright$\ }{}
+\hypersetup{
+    colorlinks,
+    linktoc=section,
+    linkcolor=red,
+    urlcolor=orange,
+    filecolor=red
+}
+\usepackage{times}
+\usepackage{todonotes}
+\usepackage{latexsym}
+\usepackage{verbatim}
+\usepackage{amsmath,amssymb}
+\usepackage{upgreek}
+\usepackage{dsfont}
+\usepackage{framed}
+\usepackage{amsfonts}
+\newcommand{\tocheck}[1]{\textcolor{blue}{#1}}
+\newcommand{\overbar}[1]{\mkern 3mu\overline{\mkern-3mu#1\mkern-3mu}\mkern 3mu}
+\usepackage{fullpage,setspace}
+\linespread{1.5}
+\usepackage{enumerate}
+\usepackage{mathrsfs}
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{lemma}{Lemme}
+\newtheorem{theorem}{Théorème}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{definition}{Définition}
+\newtheorem{heuristique}{Heuristique}
+\newtheorem{fact}{Fait}
+\newtheorem{example}{Exemple}
+\newtheorem{postulate}{Postulat}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollaire}
+\newtheorem{property}{Propriété}
+\numberwithin{lemma}{subsection}
+\numberwithin{theorem}{subsection}
+\numberwithin{definition}{subsection}
+\numberwithin{proposition}{subsection}
+\numberwithin{corollary}{subsection}
+\numberwithin{property}{subsection}
+\numberwithin{example}{subsection}
+\numberwithin{heuristique}{subsection}
+\newenvironment{proofi} {\noindent\emph{Proof:}} {\hfill $\square$\vspace{0.2cm}}
+\newcommand{\eod}{\ensuremath{\hfill\dashv}}
+\newcommand{\eop}{\ensuremath{\hfill\clubsuit}}
+\newcommand{\fun}[1]{\ensuremath{\mbox{\it #1}}}
+\newcommand{\expo}[2]{{#1}^{\mbox{\scriptsize \sl #2}}}
+\newcommand{\var}{\ensuremath{\mathbf{var}}\xspace}
+\newcommand{\exv}{\ensuremath{\mathbf{exv}}\xspace}
+\newcommand{\dsv}{\ensuremath{\mathbf{dsv}}\xspace}
+\newcommand{\term}{\ensuremath{\mathbf{term}}\xspace}
+\newcommand{\pred}{\ensuremath{\mathbf{pred}}\xspace}
+\newcommand{\fr}{\ensuremath{\mathbf{fr}}\xspace}
+\newcommand{\cnst}{\ensuremath{\mathbf{cnst}}\xspace}
+\newcommand{\Vars}{\ensuremath{\mathsf{Vars}}\xspace}
+\newcommand{\Pvars}{\ensuremath{\mathsf{Pvars}}\xspace}
+\newcommand{\Fvars}{\ensuremath{\mathsf{Fvars}}\xspace}
+\newcommand{\Terms}{\ensuremath{\mathsf{Terms}}\xspace}
+\newcommand{\Cons}{\ensuremath{\mathsf{Const}}\xspace}
+\newcommand{\Preds}{\ensuremath{\mathsf{Preds}}\xspace}
+\newcommand{\ic}{\ensuremath{\cdot\{}\xspace}
+\newcommand{\ci}{\ensuremath{\}\cdot}\xspace}
+\newcommand{\id}{\ensuremath{:\hspace{-1.56mm}\{}\xspace}
+\newcommand{\di}{\ensuremath{\}\hspace{-1.56mm}:}\xspace}
+\newcommand{\bet}{\ensuremath{\beta^{\diamond}}\xspace}
+\newcommand{\sep}{\ensuremath{\mathbf{sep}}\xspace}
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\vars}[1]{\fun{vars}{(#1)}}
+\newcommand{\terms}[1]{\fun{terms}{(#1)}}
+\newcommand{\atoms}[1]{\fun{atoms}{(#1)}}
+\newcommand{\type}[1]{\fun{type}{(#1)}}
+\newcommand{\const}{a}
+\newcommand{\atom}{\alpha}
