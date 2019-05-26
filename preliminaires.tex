@@ -1,14 +1,14 @@
 \section{Préliminaires}\label{sec:preliminaires}
 
-Les bases de connaissances sont représentées à l'aide de la logique du premier ordre sans les symboles fonctionnels (les objets ne construits que sur des prédicats, des constantes (que l'on notera en minuscule) et des variables (qui commenceront par une majuscule)). Le vocabulaire logique utilisé est composé d'un ensemble fini de prédicats et d'un ensemble infini de constantes. Un atome est de la forme $r(t_1, \ldots, t_n)$ où $r$ est un prédicat d'arité $n$ et les $t_i$ sont des termes. Les conjonctions d'atomes seront représentés par des ensembles d'atomes pour des raisons pratiques.
+Les bases de connaissances sont représentées à l'aide de la logique du premier ordre sans les symboles fonctionnels. Les objets sont des constantes (que l'on notera en minuscule) et des variables (qui commenceront par une majuscule), et on les appelle des termes. Les prédicats sont des relations entre les objets. Le vocabulaire logique utilisé est composé d'un ensemble fini de prédicats et d'un ensemble infini de constantes. Un atome est de la forme $r(t_1, \ldots, t_n)$ où $r$ est un prédicat d'arité $n$ et les $t_i$ sont des termes. Les conjonctions d'atomes seront représentées par des ensembles d'atomes pour des raisons pratiques.
 
-\begin{definition}[Homomorphisme d'un ensemble d'atomes dans un autre]
-Si on voit les ensembles d'atomes comme une conjonction d'atomes fermée existentiellement, alors $S$ s'envoie par homomorphisme dans $S'$ si et seulement si $S$ est conséquence logique de $S'$. Ceci explique pourquoi l'homomorphisme est la notion fondamentale pour le cadre que nous étudions. En particulier deux ensembles d'atomes sont équivalents si chacun s'envoie dans l'autre par homomorphisme. Ici, on le note $A \mapsto B$.
+\begin{definition}[Homomorphisme d'un ensemble d'atomes dans un autre] Soit $S$ et $S'$, deux ensembles d'atomes. Un homomorphisme est une substitution $h$ des variables de $S$ par des termes de $S'$ telle que $h(S) \subseteq S'$.
+Si on voit les ensembles d'atomes comme une conjonction d'atomes fermée existentiellement, alors $S$ s'envoie par homomorphisme dans $S'$ si et seulement si $S$ est conséquence logique de $S'$. Ceci explique pourquoi l'homomorphisme est la notion fondamentale pour le cadre que nous étudions. En particulier deux ensembles d'atomes sont équivalents si chacun s'envoie dans l'autre par homomorphisme. Ici, on le note $S \rightarrow S'$.
 \end{definition}
 
 %\paragraph{Représentation d'un ensemble d'atomes par un graphe} 
-On peut représenter un ensemble d'atomes sous la forme d'un graphe biparti d'incidence. Dans ce cas, on a deux types de sommets : des sommets représentant les termes et des sommets représentant les atomes. Ces derniers sont connectés aux premiers par des arêtes numérotées représentant la position du terme dans un atome.
-\par Prenons par exemple l'ensemble d'atomes $A = \{p(a,b,X), q(b,X), p(X,Y,a)\}$. On peut la représenter sous la forme du graphe biparti d'incidence suivant : \par
+On peut représenter un ensemble d'atomes sous la forme d'un graphe biparti. Dans ce cas, on a deux types de sommets : des sommets représentant les termes et des sommets représentant les atomes. Ces derniers sont connectés aux premiers par des arêtes numérotées représentant la position du terme dans un atome.
+\par Prenons par exemple l'ensemble d'atomes $A = \{p(a,b,X), q(b,X), p(X,Y,a)\}$. On peut le représenter sous la forme du graphe biparti d'incidence suivant : \par
 
 \begin{tikzpicture}[-,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
                     semithick]
@@ -32,8 +32,8 @@ On peut représenter un ensemble d'atomes sous la forme d'un graphe biparti d'in
         (F) edge            		node [below]        {$1$} 	(G);
 \end{tikzpicture}
 
-\par Lorsque l'ensemble d'atomes ne contient que des atomes d'arité 2, il est possible de la représenter sous la forme d'un graphe orienté où les sommets représentent les termes et les arcs représentent les atomes.
-Soit l'ensemble d'atomes $B = \{p(a,X), q(X,a), p(X,Y)\}$. On peut la représenter par : \par
+\par Lorsque l'ensemble d'atomes ne contient que des atomes d'arité 2, il est possible de le représenter sous la forme d'un graphe orienté où les sommets représentent les termes et les arcs représentent les atomes.
+Soit l'ensemble d'atomes $B = \{p(a,X), q(X,a), p(X,Y)\}$. On peut le représenter par : \par
 
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,
                     semithick]
@@ -52,20 +52,56 @@ Soit l'ensemble d'atomes $B = \{p(a,X), q(X,a), p(X,Y)\}$. On peut la représent
 \par Dans la suite du document, toutes ces représentations pourront être utilisées en fonction de leur pertinence dans le contexte.
 
 
-\begin{definition}[Base de faits] Il s'agit d'un ensemble fini d'atomes. Habituellement, un fait est un atome instancié (c'est-à-dire ne comportant que des constantes) mais on peut admettre des valeurs inconnues dans les bases de faits, auquel cas les atomes peuvent comporter des variables, qui sont quantifiées existentiellement au niveau global (cad : $\{p(a,x), p(x,b)\}$ se traduit en logique par $\exists x (p(a,x) \land p(x,b))$).
+
+\begin{definition}[Base de faits] Il s'agit d'un ensemble fini d'atomes. Habituellement, un fait est un atome instancié (c'est-à-dire ne comportant que des constantes) mais on peut admettre des valeurs inconnues dans les bases de faits, auquel cas les atomes peuvent comporter des variables, qui sont quantifiées existentiellement au niveau global. Par exemple, l'ensemble d'atomes $\{p(a,X), p(X,b)\}$ se traduit en logique du premier ordre par $\exists X (p(a,X) \land p(X,b))$.
 \end{definition}
 
-Une règle Datalog est une règle de la forme $body \rightarrow head$ où le corps \textit{(body)} et la tête \textit{(head)} sont des conjonctions d'atomes et toutes les variables apparaissant dans la tête apparaissent aussi dans le corps.
-Une règle existentielle est une règle de la forme $body \rightarrow head$ où le corps et la tête sont des conjonctions d'atomes et dont les variables de la tête peuvent être quantifiées existentiellement.
+\begin{definition}[Règle]
+Une règle est de la forme $corps \rightarrow tete$ où le corps (noté $B$) et la tête (notée $H$) sont des ensembles d'atomes.
+\par Lorsque les atomes dans le corps et la tête ne contiennent que des constantes et des variables quantifiées universellement, on dit que la règle est une règle Datalog. Par exemple $\forall X, estHumain(X) \rightarrow estMortel(X)$ est une règle Datalog. Dans la suite du rapport, le quantificateur universel sera sous-entendu. On écrira donc : $estHumain(X) \rightarrow estMortel(X)$.
+\par Lorsque des variables dans la tête n'apparaissent pas dans le corps de la règle, alors celles-ci sont quantifiées existentiellement : on dit alors que la règle est existentielle. Par exemple, $estHumain(X) \rightarrow \exists Y, estParent(Y,X)$ est une règle existentielle. Pareillement, on sous-entendra le quantificateur existentiel dans la suite du rapport.
+\end{definition}
+
+% Une règle Datalog est une règle de la forme $body \rightarrow head$ où le corps \textit{(body)} et la tête \textit{(head)} sont des conjonctions d'atomes et toutes les variables apparaissant dans la tête apparaissent aussi dans le corps.
+% Une règle existentielle est une règle de la forme $body \rightarrow head$ où le corps et la tête sont des conjonctions d'atomes et où les variables appartenant à la tête et n'appartenant pas au corps sont quantifiés existentiellement.
+
+% \begin{definition}[Variable existentielle]
+% Soit $var(H)$ l'ensemble de variables de la tête et $var(B)$ l'ensemble de variables du corps.
+% Une variable existentielle est une variable qui appartient à $var(H) \setminus var(B)$ .
+% \end{definition}
+
+% \begin{definition}[Règle existentielle]
+% Une règle existentielle $R = B \rightarrow H$ est une règle qui contient des variables existentielles.
+% \end{definition}
+
+\begin{definition}[Frontière]\label{def:frontier}
+La frontière d'une règle est l'ensemble des variables appartenant à la fois au corps et à la tête de la règle. On la note $frontier(R)$.
+\end{definition}
+
+% \begin{example} 
+% Soit la règle $R= p(x,y)\rightarrow \exists w,z \: p(x,w) \land q(y,z)$ \\
+% $R$ est une règle existentielle et $\{w,z\}$ représente l'ensemble de variables existentielles.
+% \end{example}
 
 \begin{definition}[Base de connaissances]
 Une base de connaissances $\mathcal{K} = (\mathcal{F}, \mathcal{R})$ est composée d'un ensemble de règles existentielles $\mathcal{R}$ et d'une base de faits $\mathcal{F}$.
 \end{definition}
 
-Le chaînage en avant, aussi appelée \textit{chase}, est un mécanisme qui enrichit la base de faits en effectuant des applications de règles tant que possible. Un chaînage avant ne termine pas forcément.
+\begin{definition}[Chaînage avant (\textit{chase})]
+Le chaînage en avant, aussi appelé \textit{chase}, est un mécanisme qui enrichit la base de faits en effectuant des applications de règles tant que possible. Un chaînage avant ne termine pas forcément.
 Il existe différentes variantes de \textit{chase}, qui diffèrent dans leur pouvoir d'élimination des redondances dans une base de faits en cours de saturation par les règles.
 \par On dit qu'une base de faits est saturée lorsque le chaînage en avant ne produit plus de nouveaux faits.
+\end{definition}
 
+\begin{definition}[Déclencheur]\label{def:declencheur} 
+Un délencheur (ou \textit{trigger}) est un couple $(R,h)$ où $R = B \rightarrow H$ est une règle et $h$ un homomorphisme permettant d'envoyer $B$, le corps de la règle $R$, sur la base de faits.
+\par Un déclencheur est dit nouveau s'il n'a pas été trouvé lors d'une étape précédente du chaînage avant en largeur.
+\par Il est dit applicable s'il respecte le critère d'applicabilité, qui diffère en fonction du type de chaînage en avant. La variation du critère d'applicabilité d'une règle n'a d'intérêt que pour les règles existentielles. En effet, avec les règles Datalog, les chaînages avant s'arrêtent toujours tandis que avec les règles existentielles l'arrêt varie en fonction des critères d'applicabilité des règles utilisés.
+\end{definition}
+
+\begin{definition}[Application d'un déclencheur]\label{def:application_declencheur}
+Soit une règle $R = B \rightarrow H$ et un déclencheur applicable $(R,h)$. Les nouveaux faits sont le résultat de $h^{safe}(H)$ où $h^{safe}$ est une substitution obtenue à partir de $h$ où chaque variable de $H$ qui n'est pas remplacée dans $h$ est remplacée par une variable fraîche, c'est-à-dire une variable qui n'a pas encore été utilisée dans la base de faits.
+\end{definition}
 
 % \begin{definition}[Homomorphisme, noté $\mapsto$]
 % Soit deux ensembles d'atomes $F$ et $G$. Un homomorphisme $h$ de $F$ dans $G$ est une substitution des variables de $F$ par des termes de $G$, telle que pour tout atome $p(t_1, \ldots, t_n) \in F$, $p(h(t_1), \ldots, h(t_n)) \in G$.
@@ -81,24 +117,28 @@ Il existe différentes variantes de \textit{chase}, qui diffèrent dans leur pou
 % \end{example}
 
 
-\begin{definition}[Redondance dans un ensemble d'atomes]
-Un ensemble d'atomes S est redondant s'il existe un homomorphisme de S dans l'un de ses sous-ensembles stricts.
-\end{definition}
-
-\begin{definition}[Core]\label{def:Core}
-Un core est un ensemble d'atomes non redondant.
-\par Le core d'un ensemble d'atomes S est un sous-ensemble de S équivalent à S. S peut avoir plusieurs cores, mais dans ce cas ils sont tous isomorphes (on passe de l'un à l'autre par un renommage bijectif des variables), c'est pourquoi on s'autorise à dire "le core" de S.
-\end{definition}
 
 % \begin{definition}[Sous-graphe induit]
 % Soit un graphe $G = (V,E)$ et $S$ un sous-ensemble de $V$. Un sous-graphe induit de $G$ est un sous-graphe dont l'ensemble des sommets est $S$ et dont les arêtes sont toutes les arêtes de $E$ qui relient entre eux deux sommets inclus dans $S$.
 % \end{definition}
 
 %\begin{definition}[Gel de variables]
+
+\begin{definition}[Redondance dans un ensemble d'atomes]
+Un ensemble d'atomes S est redondant s'il existe un homomorphisme de S dans l'un de ses sous-ensembles stricts.
+\end{definition}
+
+\begin{definition}[\textit{Core}]\label{def:Core}
+Un \textit{core} est un ensemble d'atomes non redondant.
+\par Le \textit{core} d'un ensemble d'atomes S est un sous-ensemble de S équivalent à S. S peut avoir plusieurs \textit{cores}, mais dans ce cas ils sont tous isomorphes (on passe de l'un à l'autre par un renommage bijectif des variables), c'est pourquoi on s'autorise à dire "le \textit{core}" de S.
+\end{definition}
 Le \textit{Freeze} ou gel d'une variable est le fait de substituer une constante pas encore utilisée \textit{(fresh constant)} à cette variable.
 %\end{definition}
 
-\paragraph{Notation}\label{def:freeze()} On notera $freeze(A)$ la procédure prenant en paramètre l'ensemble d'atomes $A$ et renvoyant cet ensemble avec ses variables gelées. Et on notera $freeze(A,B)$ la procédure prenant en paramètre deux ensembles d'atomes $A$ et $B$ et renvoyant l'union de ces deux ensembles avec uniquement les variables de A gelées (ce qui comprend le gel des variables dans $B$ qui sont aussi contenues dans $A$).
+\begin{notation}\label{not:freeze()} On notera $freeze(A)$ la procédure prenant en paramètre l'ensemble d'atomes $A$ et renvoyant cet ensemble avec ses variables gelées. Et on notera $freeze(A,B)$ la procédure prenant en paramètre deux ensembles d'atomes $A$ et $B$ et renvoyant l'union de ces deux ensembles avec uniquement les variables de A gelées (ce qui comprend le gel des variables dans $B$ qui sont aussi contenues dans $A$).
+\end{notation}
+
+
 % \begin{definition}[Gel d'atomes]
 % Le \textit{Freeze} ou gel d'un atome est le fait de substituer à chacune de ces variables une constante pas encore utilisé \textit{(fresh constant)}.
 % \end{definition}
@@ -112,13 +152,6 @@ Le \textit{Freeze} ou gel d'une variable est le fait de substituer une constante
 %     Puisque $C$ est le \textit{core} de $G$, alors, par définition, il existe un homomorphisme $h : C \mapsto G$. Cela veut donc dire que chaque sommet de $C$ doit pouvoir s'envoyer sur un sommet $G$ et puisque $C$ est de taille minimale par définition, aucun sommet de $C$ ne va s'envoyer sur un même sommet de $G$ (sinon, $C$ ne serait pas un \textit{core}). En conséquence, $C$ est un sous-graphe induit de $G$.
 % \end{proof}
 
-\begin{definition}[Pièce d'un ensemble d'atomes / d'une base de faits]\label{def:piece_atomes}
-    On appelle pièce d’un ensemble d'atomes $A$ un sous-ensemble $P$ non vide d’atomes qui vérifie : 
-    \begin{itemize}
-        \item pour toute variable existentielle $z$ de l'ensemble d'atomes $A$, si un atome contenant $z$ est dans $P$ alors tous les atomes qui contiennent $z$ sont dans $P$ 
-        \item $P$ est minimal pour cette propriété.
-    \end{itemize}
-\end{definition}
 
 
 

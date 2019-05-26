@@ -1,7 +1,45 @@
 \section{Conclusion}
 
-%         
-%   * Rappel de ce qu'on a fait.
-%   * Ouverture.
-%   * Expliquer le partage du travail.
-%
+%titre du sujet
+%Suppression des redondances dans les bases de connaissances
+
+% bilan
+%1.2 Répartition des tâches
+%Les tâches ont été effectuées en respectant la répartition des tâches indiquée sur la feuille de route (voir ci-dessous).
+%   — Étude des redondances dans les bases de règles : Romain, Rami, Julien
+%   — Implémentation des chases "classiques" : Romain, Leonardo,
+%   — Travail sur le Core Chase : Guillaume, Julien
+%   — Travail sur le Vacuum / Frugal Chase : Leonardo, Guillaume, Rami
+%   — Conception / implémentation des benchmarks : Guillaume, Leonardo, Julien, Rami, Romain
+
+% travail sur redondances et sur chases 2 parties + experimentaions
+
+\par En conclusion que ce soit par la littérature scientifique ou par les contacts répétés avec nos encadrants, ce projet TER nous a permis d'approfondir nos connaissance sur la notion de redondance dans une base de connaissance et sur la façon d'éviter ses redondances que ce soit par l'utilisation de chaînage avant en largeur ou par la suppression directe sur un ensemble de règles. 
+
+\par Cela nous a aussi permis de peaufiner nos méthodes de travail en abordant les différents aspects d'un projet de recherche.\\ 
+Que ce soit sur la partie théorique avec toute la partie de lecture scientifique, d'analyse de l'existant, puis l'élaboration de nos propres définitions et des premiers algorithmes de haut niveau.\\
+Ou bien que ce soit sur l'aspect pratique avec la conception et l'implémentations d'algorithmes efficaces dans un cadre fixé(la bibliothèque Graal\footnote{\url{https://graphik-team.github.io/graal/}}, réalisée par l'équipe GraphiK\footnote{\url{https://www.lirmm.fr/recherche/equipes/graphik}}). En finissant par la réalisation de benchmark visant non seulement à mesurer l'efficacité de nos algorithmes mais aussi de manière plus générale à illustrer plus encore les notions théoriques aborder jusque là.
+
+\par Il a été important pour nous que tous les membres de l'équipe, Guillaume, Julien, Leonardo, Rami, Romain est puent aborder ses deux aspects que ce soit lors des phases de recherches, de conceptions puis de l'implémentation aux benchmark et ceux indépendamment des travaux effectués(Guillaume, Leonardo avec Julien en renfort quasi permanent sur le travail concernant les \textit{chases} et Julien, Rami et Romain travaillant sur les redondances de règles). Le fait que notre équipe est sue ce partager le travail et, quand cela était nécessaire, ce rendre disponible pour toutes tâches indépendamment de ce qui était prévu, est sans doute l'une des raisons grâce à laquelle nous avons put tenir nos délais.
+%Peut être à reprendre un peu si vous voulez détaillé plus qui a fait quoi, etc.
+
+\par En ce qui concerne le travail produit dans le cas des \textit{chases}, et même si il reste à effectuer des tests plus poussés sur leurs efficacités, l'un des avantages principal de notre travail est au moins celui de proposer un environnement plus structuré, organisé et modulaire pour les \textit{chases} en largeur dans Graal. Là ou auparavant la partie de Graal sur les \textit{chases} était un mélange de travaux disparates, avec des nomenclatures pouvant prêtés à confusion et parfois sans généricités ou incomplets. Nous proposons maintenant un environnement sain, générique, utilisant les mêmes nomenclatures partout. Il est désormais plus simple de se retrouver et donc de manipuler voir de modifier les \textit{chases} dans Graal.
+
+\par Le travail concernant la redondance sur les règles à pour principal intérêt que c'est un sujet peu traité. Non pas que la notion de redondance de règle n'ait pas déjà été traité seulement seulement le fait de vouloir s'intéresser à supprimer ces redondances peuvent sembler secondaires par rapport au redondances apparaissant lors d'une saturation. En effet sur une base de connaissances on fait généralement en sorte de choisir les règles de telle sorte qu'il n'y ait pas de redondances. Notre travail prend son sens quand il y a une modification automatisée des règles.
+
+\par Au final en plus des résultats effectifs, l'implementation des algorithmes d'\textit{oblivious chase}, de \textit{semi-oblivious chase}, de \textit{restricted chase}, de \textit{local core chase}, de \textit{vacuum chase} ainsi que d'un algorithme de suppression de redondance au sein des règles, notre travail a aussi de permis de faire remonter un certains nombre d'informations à nos encadrants. Que ce soit la présence d'un bug qui n'avait pas été décelé jusque là ou bien le fait que certaines parties du code semble n'être utilisé nulle part(arrété en cours de route), ou encore une partie du code que l'on pensé inefficace et qui au final disposé d'une optimisation que l'on a pu reprendre. Tous ces échanges ont nourris notre projet et ont permis, du moins nous l'espérons, à ce que ce travail est un sens.
+%si vous avez d'autre choses qu'on a fait remonté n'hésiter pas à modifié.
+
+%\par L'objectif de ce projet est d’étudier la notion de redondance dans les bases de connaissances et de proposer des algorithmes d’élimination des redondances. Et comme indiqué dans le titre du TER, la suppression des redondances dans les bases de connaissances. Le travail fait par cet équipe peut être défini en deux grandes parties cruciales: l'étude de redondances dans les règles et le travail sur les différents types de chases.\\ 
+
+%\par Concernant l'implémentions des chases, notre travail a consisté à utiliser la bibliothèque Graal\footnote{\url{https://graphik-team.github.io/graal/}}, réalisée par l'équipe GraphiK\footnote{\url{https://www.lirmm.fr/recherche/equipes/graphik}}, pour l'implémentation de plusieurs types de chaînages avant ayant différentes propriétés concernant les redondances qu'ils évitent de créer. Un "nouveauGraal ?" amélioré était conçu pour la réalisation de ce travail. 
+
+%Comme la version ancienne n'était pas faite à l'origine pour le chaînage en avant, c'était nécessaire de créer une nouvelle version qui est propre, structurée et bien organisée spécifiquement pour ce type de travail. De plus nous nous sommes fixé comme objectif de le créer de manière à ce qu'il soit facile de modifier un chase contrairement à la version ancienne.
+%Il faut pas oublier les améliorations faites par rapport à chacun des anciens chases à part de l'ajout des nouveaux chases qui sont clairement plus performants que les anciens. 
+
+%De même par rapport à l'étude de redondances dans les règles, elle n'était pas traiter dans la version précédente. Notre équipe a réalisé l'implémentation pour l'application des algorithmes d'élimination de redondances. Et cette implémentation a été intégrée dans le "nouveauGraal ?".  \\
+
+%\par Pour les tests d'efficacité de notre travail et l'affichage  de l'amélioration que nous avons fait, des expérimentations ont été réalisées. Ces expérimentations nous ont aidés à observer, la différence entre les types de chaînages avant en terme de vitesse d'exécution et de capacité à éviter les redondances, ainsi que l'application supprimant les redondances dans les règles. \\
+
+%\par Par rapport aux travaux qui pourraient être faits à l'avenir, on commence par la création d'un variant de chase qui commence en appliquant tous les règles datalog au début et passe à l'application des règles existentielles. De même la création d'un chase dynamique qui applique le core, de temps en temps, dépendant d'un nombre précis atteint dans la base de faits par exemple. Ce dernier aide à optimiser la saturation. De plus on peut faire la redéfinition du vacuum chase en largeur dans notre implémentations.
+%Enfin nous pouvons aller plus loin avec les tests de chases sur des grandes bases de données utilisées en réalité.

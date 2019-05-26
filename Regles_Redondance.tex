@@ -1,138 +1,69 @@
-\section{Redondances dans les règles}\label{sec:regles}
+\section{Suppression des redondances dans les règles}\label{sec:regles}
 
-\begin{definition}[frontière]
-La frontière d'une règle est l'ensemble des variables appartenant à la fois au corps et à la tête de la règle. On le note $fr(R)$.
-\end{definition}\label{def:frontier}
-
-\begin{definition}[Pièce dans une règle]
-    On appelle pièce d’une règle une pièce de la tête de la règle (la tête étant un ensemble d'atomes).
-\end{definition}
-
-\begin{example}
-   Soit la regle $R= p(x, y),p(y, t) \rightarrow r(x,z),r(z,u),q(u),s(x, y, v), q(y)$\\
-    On peut décomposer chaque règle $R$ en un ensemble de règles dont la tête n’a qu’une seule pièce, chacune ayant le même corps que $R$. \\On aura,
-    \begin{itemize}
-        \item[*]$R_1= p(x, y),p(y, t) \rightarrow r(x,z),r(z,u),q(u)$
-      \item[*]$R_2= p(x, y),p(y, t) \rightarrow s(x, y, v), q(y)$
-    \end{itemize}
-    Une règle  dont la tête n’a qu’une seule pièce est dit règle monopièce.
-\end{example}
-
-\begin{definition}[Redondance dans le corps de la règle]\label{def:body_redundancy}
-    Soit $R = B \rightarrow H$ une règle, $R' = frontierFreeze(R) = (B' \rightarrow H')$ et $\alpha \in B'$. On dit qu'il existe une redondance dans $B$ si et seulement si, il existe un homomorphisme : $h : \alpha \mapsto B'\setminus\{\alpha\}$. 
-    Il y a absence de redondances dans le corps si il n'existe pas de tel $\alpha$.
-\end{definition}
-
-\begin{example}
-    Soit une règle $r = p(X,Y) \land p(X,b) \rightarrow p(Z,X)$. L'atome $p(X,Y)$ est redondant car il existe un homomorphisme $h = \{(X \mapsto X), (Y \mapsto b)\}$ tel que $h(p(X,Y)) = p(X,b)$.
-\end{example}
-
-\begin{definition}[Redondance dans la tête de la règle] \label{def:head_redundancy}
-Soit $R = B \rightarrow H$ une règle, $R' = frontierFreeze(R) = (B' \rightarrow H')$ et $\alpha \in H'$. On dit qu'il existe une redondance dans $H$ si et seulement si, il existe un homomorphisme : $h : \alpha \mapsto H'\setminus\{\alpha\}$.  
-Il y a absence de redondances dans la tête si il n'existe pas de tel $\alpha$.
-\end{definition}
-
-\begin{example}
-    Soit une règle $r = p(X,Y) \rightarrow p(Z,X)\land p(W,X) $. L'atome $p(W,X)$ est redondant car il existe un homomorphisme $h = \{(X \mapsto X), (W \mapsto Z)\}$ tel que $h(p(W,X)) = p(Z,X)$.
-\end{example}
-
-\begin{definition}[Redondance de la tête dans le corps de la règle]\label{def:headToBody_redundancy}
- Soit $R = B \rightarrow H$ une règle, $R' = frontierFreeze(R) = (B' \rightarrow H')$ et $\alpha \in H'$. On dit qu'il existe une redondance de la tête $H$ sur le corps $B$, si et seuleuement si il existe un homomorphisme : $h : \alpha \mapsto B'$.
- Il y a absence de redondances dans de la tête sur le corps d'une règle quand il n'existe pas un tel $\alpha$.
-\end{definition}
-
-\begin{definition}[Redondance de la tête dans le corps et la tête de la règle]\label{def:headToBodyAndHead_redundancy}
- Soit $R = B \rightarrow H$ une règle, $R' = frontierFreeze(R) = (B' \rightarrow H')$ et $\alpha \in H'$. On dit qu'il existe une redondance de la tête $H$ sur le corps $B$ et la tête $H$, si et seuleuement si il existe un homomorphisme : $h : \alpha \mapsto B' \cup H'$.
- Il y a absence de redondances dans de la tête sur le corps d'une règle quand il n'existe pas un tel $\alpha$.
-\end{definition}
-
-\begin{example}
-Soit la règle $r = p(X, Y) \rightarrow \exists Z, p(X, Z)$.
-\par $p(X,Z)$ est redondant par rapport à $p(X,Y)$ : on sait qu'il existe un tel $Z$, il s'agit de $Y$. Il existe donc un homomorphisme $h = \{(X\mapsto X), (Z \mapsto Y)\}$ tel que $h(p(X,Z)) = p(X,Y)$.
-
-\end{example}
-
-\par À partir d'un ensemble d'atomes on peut supprimer les atomes redondants de cet ensemble à l'aide du calcul du \textit{Core} (def. \ref{def:Core}).
-Si on a une règle $(B \rightarrow H)$ dont on a gelé la frontière. En utilisant le corps de la règle comme ensemble d'atomes on va pouvoir supprimer ce qui est redondant. De même pour la tête.
-\par On peut donc aussi considérer l'ensemble $freeze(B, H)$ (def. \ref{def:freeze()}). Comme les atomes du corps $B$ sont gelés et la frontière de la règle aussi le \textit{Core} essaiera de replier les atomes de la tête sur les atomes de la tête et du corps. Ce calcul inclus donc la suppression de redondance de la tête dans la tête (def. \ref{def:head_redundancy}).
-
-%\begin{proposition}
-    
-%Soit une règle $R$. Alors si on gèle le corps de la règle, on peut appliquer l'algorithme du calcul du $Core$ sur $R$ pour supprimer les redondances. 
-%\end{proposition}
-
-
-
-\begin{proposition}
-Le calcul du $Core$ de $G$ associé à la règle $R$ ne supprime que des redondances.
-\end{proposition}
-
-%\begin{proof}
-%D'après la définition du $Core$ (def. \ref{def:Core}).
-%\end{proof}
-
-
+\par Dans cette partie on va s'intéresser à un autre type de redondance : les redondances dans les bases de règles. Plus précisément, on s'est intéressé à deux formes particulières : 
+%Une autre façon de supprimer des redondances est d'analyser la base de règles. Dans le cadre de ce projet nous avons étudié deux formes de redondances : 
 \begin{itemize}
-    \item Tout d'abord, on va appliquer une transformation des règles $R \in \mathcal{R}$ qui va supprimer les redondances dans son \textit{corps} et dans sa \textit{tête} ;
-    \item Ensuite, on appelle la procédure \textit{RuleCore} à $R'$ (algorithme \ref{algo:ruleCore}) ;  
-    \item Enfin, on ajoute $R'$ dans la nouvelle base de règle $\mathcal{R'}$.
+    \item les redondances au sein d'une seule et même règle, que l'on nommera redondances intra-règles (\ref{sec:intra-regles}) ;
+    \item les redondances de règles par rapport aux autres règles, que l'on nommera redondances inter-règles (\ref{sec:inter-regles}).
 \end{itemize}
+\par Puis on présentera une application s'appuyant sur Graal permettant de supprimer ces redondances (\ref{sec:conception-RAMIX}).
 
 
+\subsection{Redondances intra-règles}\label{sec:intra-regles}
+\par Avant d'entrer plus dans les détails on posera une règle de la forme $R = B \rightarrow H$ et on notera \\ $R' = frontierFreeze(R) = (B' \rightarrow H')$ la règle $R$ où la frontière est gelée. 
+\par On distingue deux formes de redondances intra-règles : les redondances au sein du corps de la règles (\ref{sec:redondances_corps}) et les redondances de la tête dans le corps et la tête de la règle (\ref{sec:redondances_tete_corps}).
+
+\subsubsection{Redondances dans le corps de la règle}\label{sec:redondances_corps}
+\par Il existe des redondances au sein du corps $B$ de la règle $R$ si et seulement si le nombre d'atomes dans le \textit{core} (\ref{def:Core}) de $B'$ est strictement inférieur au nombre d'atomes dans $B'$. 
+\par Pour bien comprendre l'intérêt de supprimer ce type de redondance, on peut prendre l'exemple de la règle $R_1 = p(X) \land p(Y) \rightarrow q(X, Z)$. L'atome $p(Y)$ est redondant car il existe un homomorphisme : $h = \{ X \rightarrow X, Y \rightarrow X \} $ tel que $h(\{p(X), p(Y)\}) = \{p(X)\}$, donc il ne fait donc pas partie du \textit{core} de $B'$. La règle $R_1' = p(X) \rightarrow q(X, Z)$ est équivalente à $R_1$ et sans redondance dans le corps.
+\par Comparons maintenant ces deux règles dans le cadre d'une saturation. Soit la base de faits $\mathcal{F} = \{p(a), p(b)\}$. Prenons tout d'abord la base de connaissance $\mathcal{KB}_1 = (\mathcal{F}, \{R_1\})$. Lors de la première étape de saturation, on peut trouver quatre déclencheurs : $(R_1,\{ X \rightarrow a, Y \rightarrow a\})$, $(R_1, \{ X \rightarrow a, Y \rightarrow b\})$, $(R_1, \{ X \rightarrow b, Y \rightarrow a\})$, $(R_1, \{ X \rightarrow b, Y \rightarrow b\})$. Si on sature à l'aide de l'\textit{oblivious chase} on obtiendrait la base de faits suivante $\mathcal{F}^*_A = \{p(a), p(b), q(a,Z_1), q(a,Z_2), q(b, Z_3), q(b, Z_4)\}$ dont le \textit{core} est $\{p(a), p(b), q(a,Z_1), q(b,Z_3)\}$. Si on prend maintenant la base de connaissance $\mathcal{KB}_2 = (\mathcal{F}, \{R_1'\})$, lors de la première étape de saturation, on peut trouver deux déclencheurs : $(R_1',\{ X \rightarrow a\})$, $(R_1', \{ X \rightarrow b\})$. Si on sature à l'aide de l'\textit{oblivious chase} on obtiendrait la base de faits suivantes $\mathcal{F}^{*}_B = \{p(a), p(b), q(a,Z_1), q(b,Z_2)\}$ qui est équivalente au \textit{core} de $\mathcal{F}^*_A$. 
+\par Si on utilise les critères d'applicabilités du \textit{semi-oblivious chase} et du \textit{restricted chase}, ces redondances seraient évitées mais au prix d'un temps de calcul supplémentaire. D'où l'intérêt de supprimer ce type de redondance au sein des règles.
+
+
+\paragraph{L'algorithme \textit{BodyRedundancyRemover} (\ref{algo:BodyRedundancyRemover})} Pour supprimer ce type de redondance dans une règle $R = B \rightarrow H$, il faut commencer par geler la frontière de la règle dans $B$ : on note cela $B'$. On veut en effet éviter que les variables communes avec la tête $H$ ne soient supprimées. Puis on calcule le \textit{core} de $B'$ afin de supprimer les atomes redondants. Enfin il ne reste plus qu'à dégeler la frontière dans $B'$ et retourner la règle sans redondance dans le corps $B' \rightarrow H$.
+\newline
 \setstretch{1}
-\begin{algorithm}[H]\label{algo:redondances}
-\caption{Suppression de redondances}
+\begin{algorithm}[H]\label{algo:BodyRedundancyRemover}
+\caption{BodyRedundancyRemover}
 \SetAlgoLined
 \DontPrintSemicolon
 \SetAlgoLined
 \DontPrintSemicolon
-\SetKwInOut{Input}{entrées}
+\SetKwInOut{Input}{entrée}
 \SetKwInOut{Output}{sortie}
-\Input{une base de règles $\mathcal{R}$}
-\Output{la base de règles $\mathcal{R'}$}
+\Input{une règle $R = B \rightarrow H$}
+\Output{la règle $R$ sans redondance dans le corps}
 % suppression dans le coprs -> freeze du corps -> Core -> defreeze
-    $\mathcal{R}' \gets \{\}$\; 
-    \ForEach{$ R = B \rightarrow  H \in \mathcal{R}$} 
-    {
-        $R' \gets $ \textit{créerRègle(Core(frontierFreeze(B)) , H)} \;
-        $R' \gets RuleCore(R')$\;
-        $\mathcal{R'} \gets \mathcal{R'} \cup \{R'\}$\;
-    }
-    \Return $\mathcal{R}'$
+        $B' \gets Core(frontierFreeze(B))$ \;
+        $B' \gets unFreeze(B')$ \;
+        \Return $B' \rightarrow H$ \;
 \end{algorithm}
-%
-%\paragraph{Le \textit{BodyChecker}}
-%Le \textit{BodyChecker} supprime ce qui est redondant dans le \textit{corps} d'une règle $R$. Il va d'abord geler la frontière sur $R$. Ensuite on calcule le $Core$ du \textit{corps} de $R$. Enfin on dégèle $R$. 
-%\newline
 
-%\setstretch{1}
-%\begin{algorithm}[H]\label{algo:bodyChecker}
-%%\caption{Body Checker} 
-%\SetAlgoLined
-%\DontPrintSemicolon
-%%\SetAlgoLined
-%\DontPrintSemicolon
-%\SetKwInOut{Input}{entrées}
-%\SetKwInOut{Output}{sortie}
-%\SetKwInOut{Variables}{Variables}
-%\Input{une règle $R = B \rightarrow  H$}
-%\Output{la règle $R$ sans redondance dans $B$}
-% frontierfreeze  -> Core sur le body 
- %   $frontierFreeze(R)$\;  
- %   $B' \gets Core(B)$\;
- %   $R' \gets (B' \rightarrow H)$\;
- %   $unfreeze(R')$\;
- %   \Return $R'$
-%\end{algorithm}
 
-\paragraph{Le \textit{RuleCore}}
-Le \textit{RuleCore} va supprimer ce qui est redondant dans la \textit{tête} et de la \textit{tête} sur le \textit{corps} d'une règle. On va geler (\ref{def:freeze()}) les variables dans $B$ qui sont dans $R$, on obtient $F$ qui est un ensemble d'atomes. Enfin on applique le calcul du $Core$ à $F$ pour obtenir $F'$ sans atomes redondant. Pour finir on construit $R'$ à partir de $F'$ et on retourne $R'$.
+% \begin{example}
+%     Soit une règle $r = p(X,Y) \land p(X,b) \rightarrow p(Z,X)$. L'atome $p(X,Y)$ est redondant car il existe un homomorphisme $h = \{(X \mapsto X), (Y \mapsto b)\}$ tel que $h(p(X,Y)) = p(X,b)$.
+% \end{example}
+
+\par Une fois cette redondance supprimée dans la règle, on peut essayer de supprimer les redondances suivantes.  
+
+\subsubsection{Redondances de la tête dans le corps et la tête de la règle}\label{sec:redondances_tete_corps}
+
+\par Dans cette partie on prendra $B'$ le corps $B$ d'une règle où tous les atomes sont gelés. La frontière est donc aussi gelée.
+\par Il existe des redondances de la tête $H$ sur le corps $B$ et sur la tête $H$ de la règle $R$ si et seulement si le nombre d'atomes dans le \textit{core} (\ref{def:Core}) de $B' \cup H$ est strictement inférieur au nombre d'atomes dans $B' \cup H$. 
+\par  Pour bien comprendre l'intérêt de supprimer ce type de redondance, on peut prendre l'exemple de la règle $R_1 = p(X,Y) \rightarrow p(Y,Z) \land p(T,Z) \land p(S,T)$. Les atomes $p(T,Z)$ et $p(S,T)$ sont redondants par rapport au corps $p(X,Y)$ et une partie de la tête $p(Y,Z)$. En effet, il existe un homomorphisme : $h = \{ X \rightarrow X, Y \rightarrow Y, Z \rightarrow Z, T \rightarrow Y, S \rightarrow X \} $ tel que $h(\{p(X, Y), p(Y,Z), p(T,Z), p(S,T)\}) = \{p(X,Y), p(Y,Z)\}$, donc ils ne font donc pas partie du \textit{core} de $B' \cup H$. La règle $R_1' = p(X,Y) \rightarrow p(Y, Z)$ est équivalente à $R_1$ et sans redondance de la tête dans le corps et la tête.
+\par Comparons ces deux règles dans le cadre d'une saturation. Prenons la base de connaissance $\mathcal{KB}_1 = (\mathcal{F}, \{R_1\})$ où la base de faits $\mathcal{F} = \{p(a,b)\}$. Lors de la première étape de saturation, on obtient un déclencheur : ($R_1, \{X \rightarrow a, Y \rightarrow b\}$. À l'issue de la première étape de l'\textit{oblivious chase}, on obtient la base de faits $\mathcal{F}^1_A = \{p(a,b), p(b,Z_1),\linebreak p(T_1,Z_1), p(S_1,T_1)\}$ dont le \textit{core} est $\{p(a,b),p(b,Z_1)\}$. Si on prend maintenant la base de connaissance $\mathcal{KB}_2 = (\mathcal{F}, \{R_1'\})$, lors de la première étape de saturation on trouve un déclencheur : $(R_1', \{X \rightarrow a, Y \rightarrow b\}$. Si on applique une seule étape de l'\textit{oblivious chase}, on obtient la base de faits suivante $\mathcal{F}^1_B = \{p(a,b), p(b,Z_1)\}$ qui est équivalente au \textit{core} de $\mathcal{F}^1_A$.
+\par Si on utilise les critères d'applicabilités du \textit{semi-oblivious} et du \textit{restricted chase}, ces redondances ne seraient pas évitées. En effet, lors de la première étape du \textit{semi-oblivious}, la liste des déclencheurs précédemment appliqués est vide. On va donc générer tout les atomes de la tête de $R_1$. Pour le \textit{restricted chase} lors de la première étape, on ne va pas pouvoir étendre l'homomorphisme $h = (X \rightarrow a, Y \rightarrow b)$ car on produit l'atome $p(b,Z_1)$ qui n'appartient pas à $\mathcal{F} = \{p(a,b)\}$. En revanche le \textit{core} détectera ces redondances. 
+
+
+\paragraph{L'algorithme \textit{HeadToBodyHeadRedundancyRemover} (\ref{algo:HeadToBodyHeadRedundancyRemover})}
+va supprimer ce qui est redondant de la tête $H$ sur le corps $B$ et la tête $H$ d'une règle. Pour ce faire on va devoir construire un ensemble contenant les atomes de $B$ et de $H$ avec toutes les variables de $B$ gelées. On appellera cet ensemble $F$. Ensuite on applique le calcul du \textit{core} sur $F$ pour obtenir $F'$ sans atomes redondant. Enfin, on construit la règle $R'$ à partir de $F'$ qui sera équivalente à $R$ et sans redondance de ce type. 
+\par A l'issue de cet algorithme il est possible d'obtenir une règle $R$ où la tête $H$ est totalement vide. En effet, si tous les atomes de la tête $H$ sont redondants sur le corps $B$ alors la tête sera vide car le \textit{core} supprimera tout les atomes redondant. Une telle règle sera supprimée de la base de règles $\mathcal{R}$ car elle ne produit plus aucun atome.
 \newline
 
 
 \setstretch{1}
-\begin{algorithm}[H]\label{algo:ruleCore}
-\caption{Rule Core} %revoir le nom
+\begin{algorithm}[H]\label{algo:HeadToBodyHeadRedundancyRemover}
+\caption{HeadToBodyHeadRedundancyRemover} %revoir le nom
 \SetAlgoLined
 \DontPrintSemicolon
 \SetAlgoLined
@@ -143,8 +74,8 @@ Le \textit{RuleCore} va supprimer ce qui est redondant dans la \textit{tête} et
 \Input{une règle $R = B \rightarrow  H$}
 \Output{la règle $R'$}
 % suppression dans le coprs -> freeze du corps -> Core -> defreeze
-    $H', F, F'\gets \{\} $ // ensemble d'atomes\;
-    $F \gets freeze(B, H)$\;
+    $H', F, F'\gets \{\} $ \Comment{ensembles d'atomes}
+    $F \gets freeze(B, H)$ \Comment{voir notation \ref{not:freeze()}}
    
     $F' = Core(F)$\;
     \ForEach{$\alpha \in F'$} 
@@ -159,18 +90,30 @@ Le \textit{RuleCore} va supprimer ce qui est redondant dans la \textit{tête} et
     \Return $R'$
 \end{algorithm}
 
+
+\par L'application de ces deux algorithmes permettent de supprimer les redondances intra-règles étudiées. Après cette opérations pour toutes les règles d'une base de règles on va maintenant s'intéresser aux redondances entre les règles.
+
+\subsection{Redondances inter-règles}\label{sec:inter-regles}
+
+\par Pour un ensemble de règles, une règle va être redondante par rapport à cet ensemble si elle peut être inférée à partir des autres règles. Voici une définition un peu plus formelle d'une redondance inter-règles.
+
 \begin{definition}
-    Soit $\mathcal{R}$ une base de règle et $R \in \mathcal{R}$ une règle. On dit que $R$ est redondante dans $\mathcal{R}$ si et seulement si $\mathcal{R} \backslash\{R\} \vDash R$.
+    Soit $\mathcal{R}$ une base de règle et $R \in \mathcal{R}$ une règle. On dit que $R$ est redondante dans $\mathcal{R}$ si et seulement si $\mathcal{R} \setminus\{R\} \vDash R$.
 \end{definition}
 
-\paragraph{Le \textit{SimpleRules}}
-Le \textit{SimpleRules} va supprimer toutes les règles $R$ redondantes par rapport à une base de règle $\mathcal{R}$. Pour chaque règle $R$ on va utiliser un algorithme de chaînage avant appliqué sur une base de connaissance qui a pour base de fait le corps de la règle $R$ à tester et pour base de règle : $\mathcal{R} \backslash \{R\}$. Si la tête de la règle $H$ est présente dans la base de faits saturées alors on a $\mathcal{R} \backslash \{R\} \models R$. Donc $R$ est redondante par rapport à $\mathcal{R}$. Sinon on maintient $R$ dans $\mathcal{R}$. 
+\par Une des façons de savoir si une règle peut être inférée par une base de règles est d'utiliser un algorithme de chaînage avant sur la base de connaissance suivante : $\mathcal{KB} = \{B, \mathcal{R} \setminus \{R\}\} $ où $B$ est le corps de la règle $R$ à tester. Si la tête de la règle $H$ est présente dans la base de faits saturée alors on a $R$ qui est inférée par $\mathcal{R} \setminus \{R\}$. Pour detecter la présence de la tête $H$ de la règle, on peut se ramener à chercher un homomorphisme $h : H \rightarrow \mathcal{F}^*$ en ayant pris soin de geler les variables frontières. En d'autres termes, si un tel homomorphisme existe on a : $\mathcal{R} \setminus \{R\} \models R$. Donc $R$ est redondante par rapport à $\mathcal{R}$. 
+\par Dans le cas contraire il y a deux possibilités. Soit l'algorithme de chaînage avant s'est arrêté, et dans ce cas, en l'absence de l'existence de l'homomorphisme $h$ décrit précédemment, on sait que $R$ n'est pas redondante par rapport à l'ensemble de règles $\mathcal{R}$. Soit l'algorithme ne s'est pas arrêté et dans ce cas on ne peut pas répondre par oui où par non. La règle $R$ est peut être redondante par rapport à l'ensemble $\mathcal{R}$ ou peut être pas.
+
+\par Pour mieux comprendre les redondances inter-règles, on peut prendre l'exemple suivant. Soit une base de règles $\mathcal{R} = \{R_1 = p(X) \rightarrow q(X), R_2 = p(X) \rightarrow t(X), R_3 = q(X) \rightarrow t(X)\}$. On analyse règle par règle si $\mathcal{R} \setminus R$ infère $R$. Clairement $R_1$ n'est pas inférée par $\mathcal{R} \setminus R_1$ car ni $R_2$ ni $R_3$ ne produisent l'atome $q(X)$. Par contre on remarque que $R_2$ est inférée par $\mathcal{R} \setminus R_2$. On débute l'analyse avec pour base de faits $\mathcal{F}$ le corps $B$ de la règle $R_2$ : $\mathcal{F} = \{p(X)\}$. On obtient donc le déclencheur : $(R_1, \{X \rightarrow X\})$ qui va produire l'atome $q(X)$. Avec ce nouvel atome on obtient $\mathcal{F}^1 = \{p(X), q(X)\}$. Lors de la deuxième étape on obtient le délancheur : $(R_3, \{X \rightarrow X\})$ qui va produire l'atome $t(X)$ et donc $\mathcal{F}^2 =  \{p(X), q(X), t(X)\}$. La tête $H = \{t(X)\}$ de $R_2$, est incluse dans $\mathcal{F}^2$. $R_2$ peut donc être inférée à partir de $\mathcal{R}\setminus R_2$. Pour finir, on remarque que $R_3$ n'est pas redondante par rapport à $\mathcal{R} \setminus R_3$ car on obtient aucun déclencheur dès la première étape. La tête $H$ de $R_3$ n'appartient donc pas à $\mathcal{F}^*$.
+
+
+\paragraph{L'algorithme \textit{SimpleRules} (\ref{algo:SimpleRules})} va supprimer toutes les règles $R = B \rightarrow H$ redondantes par rapport à une base de règles $\mathcal{R}$. Pour chaque règle $R$ on va utiliser un algorithme de chaînage avant appliqué sur la base de connaissance suivante : $\mathcal{KB} = \{B, \mathcal{R} \setminus \{R\}\} $ où $B$ est le corps de la règle $R$ à tester. Si la tête de la règle $H$ est présente dans la base de faits saturées alors on a $\mathcal{R} \setminus \{R\} \models R$. Donc $R$ est redondante par rapport à $\mathcal{R}$. Sinon on maintient $R$ dans $\mathcal{R}$. 
 \newline
 
 
 
 \setstretch{1}
-\begin{algorithm}[H]\label{algo:rule}
+\begin{algorithm}[H]\label{algo:SimpleRules}
 \caption{SimpleRules} %revoir le nom
 \SetAlgoLined
 \DontPrintSemicolon
@@ -184,11 +127,12 @@ Le \textit{SimpleRules} va supprimer toutes les règles $R$ redondantes par rapp
 \Output{La base de règles $\mathcal{R}'$ non redondante}
 % pour chaque regle on verifie si R \ r |= r
 % freeze des base regle \ r et chercher un homomorphisme de r dans base regle     
-    \ForEach{$r = B \rightarrow H \in \mathcal{R}$} 
+    \ForEach{$R = B \rightarrow H \in \mathcal{R}$} 
     {
-         $\mathcal{F} \gets$ créerFactBase($freeze$($B$))\;
-         $\mathcal{F}^* \gets$ Chase($\mathcal{F}$, $\mathcal{R} \backslash \{r\}$)\;
-         \uIf{\textit{il existe un homomorphisme }$ h : B \rightarrow \mathcal{F}^*$ et qu'il existe une extension $h_s : H \rightarrow \mathcal{F}^*$ de $h$}
+         $\mathcal{F} \gets$ créerFactBase($freeze$($B$)) \Comment{voir notation \ref{not:freeze()}}
+         $\mathcal{F}^* \gets$ Chase($\mathcal{F}$, $\mathcal{R} \backslash \{R\}$)\;
+         
+         \uIf{\textit{il existe un homomorphisme }$ h : H \rightarrow \mathcal{F}^*$ et qu'il existe une extension $h_s : H \rightarrow \mathcal{F}^*$ de $h$}
         {
             $\mathcal{R} \gets \mathcal{R} \backslash \{r\}$\;
         }
@@ -196,27 +140,88 @@ Le \textit{SimpleRules} va supprimer toutes les règles $R$ redondantes par rapp
     \Return $\mathcal{R}$
 \end{algorithm}
 
-    \subsection{Analyse du nouveau travail dans Graal}
+
+
+\subsection{Algorithme de suppression de redondances}\label{sec:algo-regles}
+
+\par L'algorithme général va supprimer les redondances pour chaque règle d'une base de règles. On commencera d'abord par la suppression des redondances intra-règles en appelant les algorithmes de suppression de redondances dans le corps $B$ de la règle (\ref{algo:BodyRedundancyRemover}) suivi de la suppression des redondances de la tête sur le corps et la tête de la règles \ref{algo:HeadToBodyHeadRedundancyRemover}. Ceci sera appelée la première phase. 
+\par La seconde partie de l'algorithme va supprimer les redondances inter-règles. Pour chacune des règles $R$ dans la base de règles $\mathcal{R}$ on va tester si $R$ est redondante à la base de règles $\mathcal{R} \backslash {R}$. Pour ce faire nous utiliserons l'algorithme de suppressions des redondances inter-règles (\ref{algo:SimpleRules}).
+
+\setstretch{1}
+\begin{algorithm}[H]\label{algo:redondances}
+\caption{Suppression de redondances}
+\SetAlgoLined
+\DontPrintSemicolon
+\SetAlgoLined
+\DontPrintSemicolon
+\SetKwInOut{Input}{entrée}
+\SetKwInOut{Output}{sortie}
+\Input{une base de règles $\mathcal{R}$}
+\Output{la base de règles $\mathcal{R'}$}
+% suppression dans le coprs -> freeze du corps -> Core -> defreeze
+    $\mathcal{R}' \gets \{\}$\; 
+    \ForEach{$ R = B \rightarrow  H \in \mathcal{R}$} 
+    {
+        $R' \gets BodyRedundancies(R)$ \;
+        $R' \gets HeadToBodyAndHeadRedundancies(R')$\;
+        $\mathcal{R'} \gets \mathcal{R'} \cup \{R'\}$\;
+    }
+    $\mathcal{R'} \gets SimpleRules(\mathcal{R'})$\;
+    \Return $\mathcal{R}'$
+\end{algorithm}
+
+
+
+
+
+
+\subsection{Conception et implémentations}\label{sec:conception-RAMIX}
+    \par Dans le but de pouvoir exploiter les algorithmes de suppression de redondances, nous les avons implémentés dans un nouveau \textit{package} dans GRAAL : \textit{rule\_redundancy}. On présentera dans cette partie notre travail sur ces différents algorithmes de suppressions de redondances que nous proposons. Comme vu dans les parties (\ref{sec:intra-regles} et \ref{sec:inter-regles}) présentant les différents types de redondances que l'on a étudié, on a crée deux classes, l'une traitant les redondances intra-règles et l'autre les redondances inter-règles. Mais on rentreras plus dans les détails dans ce qui suit.
+
         \begin{figure}[H]
         \centering
         \includegraphics[width=\textwidth]{pictures/RedondanceDiagrammeClasse.png}
-        \caption{Diagramme de classes pour les redondances des règles}
+        \caption{Diagramme de classes du paquet graal.rule_redundancy}
         \label{fig:dclasse}
         \end{figure}
         
-    \paragraph{Package Rule Redundancy}
-         \begin{itemize}
-            \item Redundancy : Interface à implémenter pour toutes les classes de redondance sur les règles. 
-            \item HeadToBodyRedundancyRemover : Classe qui élimine la redondance dans une règle.
-            \item RuleSetRedundancy : Classe qui élimine les règles redondantes dans un ensemble de règles.
-            \item RuleApplierForRuleRedundancy : Classe qui permet de savoir tous les homomorphismes et les règles appliquées.
-        \end{itemize}
-        
-    \paragraph{Classe HeadToBodyRedundancyRemover}\ \\
-         On applique dans cette classe l'algorithme \ref{algo:redondances} pour la suppression de redondances dans les règles. Cet algorithme va prendre chaque règle du $\mathcal{BR}$ et va supprimer les redondances dans son \textit{corps} et puis dans sa \textit{tête} et de la \textit{tête} sur son \textit{corps}.
+
+    \paragraph{Classe IntraRuleRedundancyRemover}\ \\
+        Cette classe a pour objectif d'éliminer les redondances intra-règles (\ref{sec:intra-regles}). On traite donc une règle. On applique dans cette classe l'algorithme \ref{algo:BodyRedundancyRemover} pour supprimer les redondances dans le corps et l'algorithme \ref{algo:HeadToBodyHeadRedundancyRemover} pour supprimer les redondances de la tête sur le corps et la tête de la règle traitée. A l'issue de ce traitement il est possible d'obtenir une règle dont la tête est vide. Cela a pour conséquence que si une telle règle est applicable, alors elle ne produira rien. On décide donc de supprimer la règle si sa tête disparaît. 
          
-    \paragraph{Classe RuleSetRedundancy}\ \\
-         On applique dans cette classe l'algorithme \ref{algo:rule} pour la suppression des règles redondantes dans une base de règles donnée. Cet algorithme va tester chaque règle de la base de règles $\mathcal{BR}$ pour vérifier si elle est redondante par rapport à $\mathcal{BR}$, si c'était le cas on la retire de $\mathcal{BR}$ et sinon il faut la laisser.
+    \paragraph{Classe InterRuleRedundancyRemover}\ \\
+        Cette classe a pour objectif d'éliminer les redondances inter-règles (\ref{sec:intra-regles}). Dans le \textit{remover} de cette classe, on applique l'algorithme \ref{algo:rule} pour la suppression de ces redondances. Cet algorithme va tester chaque règle de la base de règles $\mathcal{R}$ pour vérifier si elle est redondante par rapport à $\mathcal{R}$, si c'était le cas on la retire de $\mathcal{R}$ et sinon il faut la laisser.
          
     \paragraph{Classe MainRedundancy}\ \\
          Pour l'application des algorithmes d'élimination de redondances des règles on a créer la classe \textit{MainRedundancy} qui prend une ontologie en format \textit{.dlp} et selon les paramètres données on applique l'élimination de redondance dans chacune des règles (phase 1), pour chaque règle par rapport à tous les règles (phase 2) ou les deux (phase 1 et 2). Une nouvelle bases de règles va être créer, à la fin de l'exécution, dans un fichier \textit{.dlp}. Pour avoir les détails de chaque exécution, un fichier \textit{.txt} sera créer. Ce fichier va contenir les informations nécessaires pour la simplification de chaque règle dans la phase 1, de plus les homomorphismes et les règles utilisés pour justifier la redondance de la règle à éliminer.
+         
+\subsection{Expérimentations}
+
+\par On a expérimenté notre programme \textit{MainRedundancy} sur différentes base de règles. 
+Certaines sont présente \href{https://graphik-team.github.io/graal/experiments1}{ici} \\
+
+\paragraph{Résultats de quelques tests}
+\begin{center}
+\begin{tabular}{|c||c|c|c|}
+    \hline
+    Fichier & nombre de règles initial & nombre de règles après la phase 1 & nombre de règles après la phase 2 \\
+    \hline
+     \hline
+       A.dlp & 121 & 121 & 119    \\
+     \hline
+       S.dlp & 53  & 53 & 45      \\
+     \hline
+       U.dlp & 77  & 77 & 65      \\
+     \hline
+       V.dlp & 222 & 222 & 222    \\
+     \hline
+       exR.dlp & 12 & 7 & 5 	\\
+     \hline
+       Onto2.dlp & 554 & 554 & 541	\\
+     \hline
+\end{tabular}
+\end{center}
+
+\par Pour chacun de ces fichier \textit{.dlp} qui représente une ontologie, on a supprimé la redondance intra-règles (phase 1) pour chacune des règles appartenant à cette ontologie. Puis on a passé à l'élimination des redondances inter-règles (phase 2). \\ \\
+Dans la première phase on peut avoir des cas où la simplification d'une règle résulte à l'élimination instantanée de cette règle, exemple à la fin de la phase 1 dans \textit{exR.dlp} on a commencer la phase 2 avec 7 règles au lieu des 12 règles initiales. De même on peut avoir des cas où on a aucune redondance intra-règles comme dans le test de \textit{V.dlp}.\\ \\
+En passant dans la deuxième phase on est certain qu'on a supprimé toutes les intra-redondances. Dans cette phase on peut avoir le cas où la présence de chaque règle est cruciale et dons pas d'élimination de règle (\textit{exR.dlp}), un autre cas c'est la détection et l'élimination de plusieurs règles inter-redondante, par exemple \textit{U.dlp}.
