@@ -1,7 +1,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[french]{babel}
 \usepackage[T1]{fontenc}
-\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage[top=2.2cm, bottom=2.2cm, left=2.2cm, right=2.2cm]{geometry}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -34,7 +34,7 @@
 \usepackage{amsfonts}
 \newcommand{\tocheck}[1]{\textcolor{blue}{#1}}
 \newcommand{\overbar}[1]{\mkern 3mu\overline{\mkern-3mu#1\mkern-3mu}\mkern 3mu}
-\usepackage{fullpage,setspace}
+\usepackage{setspace}
 \linespread{1.5}
 \usepackage{enumerate}
 \usepackage{mathrsfs}
@@ -92,3 +92,19 @@
 \newcommand{\type}[1]{\fun{type}{(#1)}}
 \newcommand{\const}{a}
 \newcommand{\atom}{\alpha}
+\usepackage[nottoc,numbib]{tocbibind}
+% ----- fancyhdr setup -----
+\pagestyle{fancy}
+\fancyhf{}
+%\renewcommand{\sectionmark}[1]{\markboth{\thesection~~\ #1}{\leftmark}}
+\lfoot{Suppression des redondances dans les bases de connaissances}
+%\renewcommand{\leftmark}[1]{\markboth{\thesubsection~~\ #1}{\leftmark}}
+\lhead{\textsl{\rightmark}}
+%\lfoot{\leftmark}
+\rfoot{Page \thepage}
+
+
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
+\newcommand{\hsp}{\hspace{20pt}}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}

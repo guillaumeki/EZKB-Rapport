@@ -240,18 +240,19 @@
        
        \begin{figure}[h]
         \centering
-        \includegraphics[width=\textwidth]{pictures/new_forward_chaining-rule_applier.png}
+        \includegraphics[width=0.85\textwidth]{pictures/new_forward_chaining-rule_applier.png}
         \vspace{-30pt}
         \caption{Diagramme de classes du paquet graal.grd.new\_forward\_chaining.rule\_applier}
         \label{fig:new_forward_chaining.rule_applier}
+        \vspace{-10pt}
         \end{figure}
        
-       \paragraph{Paquet new\_forward\_chaining.trigger\_checker} Les 3 critères d'applicabilité qui ont été présentés sont implémentés chacun dans leur propre classe : \textbf{ObliviousTriggerChecker}, \textbf{SemiObliviousTriggerChecker} et \textbf{RestrictedTriggerChecker}. Chacune de ces classes spécialisent la précédente car elles vérifient le critère de leur classe mère avant de vérifier le leur. En effet, par exemple, pour le \textit{restricted chase}, il est intéressant de d'abord vérifier le critère du \textit{semi-oblivious chase} car celui-ci est moins coûteux à calculer. Ainsi, si ce dernier n'est pas respecté, on évite le calcul de l'homomorphisme nécessaire au test d'applicabilité du \textit{restricted chase}, ce qui permet de l'optimiser. 
+       \paragraph{Paquet new\_forward\_chaining.trigger\_checker} Les 3 critères d'applicabilité qui ont été présentés sont implémentés chacun dans leur propre classe : \textbf{ObliviousTriggerChecker}, \textbf{SemiObliviousTriggerChecker} et \textbf{RestrictedTriggerChecker} (figure \ref{fig:new_forward_chaining.trigger_checker}). Chacune de ces classes spécialisent la précédente car elles vérifient le critère de leur classe mère avant de vérifier le leur. En effet, par exemple, pour le \textit{restricted chase}, il est intéressant de d'abord vérifier le critère du \textit{semi-oblivious chase} car celui-ci est moins coûteux à calculer. Ainsi, si ce dernier n'est pas respecté, on évite le calcul de l'homomorphisme nécessaire au test d'applicabilité du \textit{restricted chase}, ce qui permet de l'optimiser. 
        \par Après avoir testé le critère d'applicabilité, il faut réaliser l'extension locale.
        
        \begin{figure}[h]
         \centering
-        \includegraphics[width=\textwidth]{pictures/new_forward_chaining-trigger_checker.png}
+        \includegraphics[width=0.85\textwidth]{pictures/new_forward_chaining-trigger_checker.png}
         \vspace{-30pt}
         \caption{Diagramme de classes du paquet graal.grd.new\_forward\_chaining.trigger\_checker}
         \label{fig:new_forward_chaining.trigger_checker}
@@ -259,10 +260,25 @@
        
        \paragraph{Paquet new\_forward\_chaining.extender}
        
-       Comme il y a deux types d'algorithme d'extension, on distingue deux interfaces : \textbf{GlobalExtender} et \textbf{LocalExtender}. Puis, chaque algorithme d'extension a sa propre classe. La classe \textbf{DefaultAtomSetExtender}
+       Comme il y a deux types d'algorithme d'extension, on distingue deux interfaces : \textbf{GlobalAtomSetExtender} et \textbf{LocalAtomSetExtender} (figure \ref{fig:new_forward_chaining.extender}). Puis, chaque algorithme d'extension a sa propre classe. La classe \textbf{DefaultAtomSetExtender} sert d'algorithme d'extension locale et globale pour l'\textit{oblivious chase} et tous les types d'algorithme utilisant les extensions globale et locale de l'\textit{oblivious chase}.
+       \par La classe \textbf{CoreAtomSetExtender} contient l'algorithme d'extension globale pour le \textit{core chase}, en laissant le choix de l'algorithme de \textit{core} à utiliser, et la classe \textbf{LocalCoreChaseAtomSetExtender} est l'équivalent pour le \textit{local core chase}.
+       \par Pour le \textit{vacuum chase}, la version est implémentée est la version A, mais seulement l'extension globale. En effet, comme expliqué dans la section \ref{sec:vacuum_chase}, l'extension locale spécifique au \textit{vacuum chase} n'est pas nécessaire lorsque les règles sont mono-pièces. On utilisera donc, comme on va le voir dans le paragraphe qui suit, un pré-traitement transformant les règles en règles mono-pièces.
        
-       \paragraph{Paquet new\_forward\_chaining.pretreatment}
-       \paragraph{Paquet new\_forward\_chaining.halting\_condition}
+       \begin{figure}[h]
+        \centering
+        \includegraphics[width=\textwidth]{pictures/new_forward_chaining-extender.png}
+        \vspace{-30pt}
+        \caption{Diagramme de classes du paquet graal.grd.new\_forward\_chaining.extender}
+        \label{fig:new_forward_chaining.extender}
+        \end{figure}
+       
+       \paragraph{Paquet new\_forward\_chaining.pretreatment} Les pré-traitements sont des classes contenant un algorithme qui sera exécuté avant le début de la saturation. Deux pré-traitements ont été implémentés. Tout d'abord, un calcul du \textit{core} de la base de faits (classe \textbf{ComputeCore}), notamment utile avant le lancement d'un \textit{core chase} ou d'un \textit{local core chase}. Ensuite, un algorithme rendant les règles monopièces (classe \textbf{RuleSplit}), notamment à utiliser au début d'un \textit{vacuum chase}, mais aussi au début d'un \textit{restricted chase} car cela lui permet de supprimer plus de redondances (en effet, il peut arriver que seule une pièce de la tête puisse s'envoyer sur la base de faits mais pas la totalité - d'où le fait que rendre une règle monopièce puisse réduire le nombre de redondances).
+       
+       \paragraph{Paquet new\_forward\_chaining.halting\_condition} Le dernier paquet est celui des conditions d'arrêt. Deux conditions d'arrêt supplémentaires ont été implémentées : un arrêt au bout d'un temps limite (classe \textbf{TimeoutHaltingCondition}) et, dans le cas spécifique d'un chaînage avant en largeur, un arrêt au bout d'un nombre d'étapes limite (classe \textbf{LimitStepsHaltingCondition}).
+       
+       \paragraph{Paquet atom\_set\_splitter} Un paquet spécifique contenant des classes calculant les pièces d'un ensemble d'atomes a été ajouté. Il est notamment utile pour l'extension globale du \textit{vacuum chase} et le découpage des règles en règles mono-pièces. Il contient notamment la classe \textbf{DefaultAtomSetSplitter} qui réduit le problème de calculer les pièces d'un ensemble d'atomes à un problème de calcul de composantes connexes d'un graphe afin de pouvoir utiliser un algorithme en temps polynomial qui résout ce problème.
+       
+       \par~\par Ce projet a donc été l'occasion d'implémenter des algorithmes de chaînage avant n'existant pas dans Graal et de proposer une nouvelle structuration, plus flexible, permettant de réaliser facilement des ajouts et optimisations dans le futur. Ces implémentations ont permis de réaliser des comparaisons entre les différents types d'algorithme comme cela va maintenant être présenté.
        
        
 %       \par~ \par~ \par~ \par~

@@ -38,9 +38,8 @@ Avant de décrire l'algorithme générique de chaînage avant, il convient de d�
 
 \par Une extension locale est un algorithme qui prend en paramètre les nouveaux faits de l'étape en cours et un déclencheur applicable et qui produit des nouveaux faits à partir du déclencheur pour les ajouter aux nouveaux faits de l'étape en cours - cet algorithme varie en fonction du type de \textit{chase}.
 \par Une extension globale est un algorithme prenant en paramètre la base de faits de l'étape précédente et les nouveaux faits de l'étape en cours et qui produit la base de faits de l'étape en cours - il varie lui aussi en fonction du type de \textit{chase}.
-\par Ceci posé, on peut décrire notre algorithme de chaînage avant en largeur.
-
-Soit une base de connaissances $\mathcal{KB} = (\mathcal{F}_0, \mathcal{R})$. Un chaînage avant en largeur (algorithme  \ref{algo:chainage_avant_largeur}) consiste, à partir d'une base de faits $\mathcal{F}_i$ à générer une base de faits $\mathcal{F}_{i+1}$ en :
+\par Ceci posé, on peut décrire notre algorithme de chaînage avant en largeur (algorithme  \ref{algo:chainage_avant_largeur}).
+Soit une base de connaissances $\mathcal{KB} = (\mathcal{F}_0, \mathcal{R})$. Une étape de chaînage avant en largeur  consiste, à partir d'une base de faits $\mathcal{F}_i$ à générer une base de faits $\mathcal{F}_{i+1}$ en :
 \begin{itemize}
     \item Ajoutant le contenu de $\mathcal{F}_{i}$ à $\mathcal{F}_{i+1}$ ;
     \item Pour chaque règle $R = B \rightarrow H \in \mathcal{R}$, trouver tous les nouveaux déclencheurs $(R,h)$ tels que $h(B) \subset \mathcal{F}_i$ ;
@@ -54,8 +53,8 @@ Soit une base de connaissances $\mathcal{KB} = (\mathcal{F}_0, \mathcal{R})$. Un
 %\paragraph{Homomorphisme sûr} Un homomorphisme $h^s$ est une extension d'un homomorphisme $h$ consistant à remplacer les variables de l'ensemble d'atomes sur lequel est appliqué $h^s$ par des noms de variables "frais", autrement dit des noms de variables n'existant pas encore dans la base de faits que l'on sature.
 %\newline
 
+\begin{algorithm}[!h]\label{algo:chainage_avant_largeur}
 \setstretch{1}
-\begin{algorithm}[H]\label{algo:chainage_avant_largeur}
 \caption{Chaînage avant en largeur}
 \SetAlgoLined
 \DontPrintSemicolon
@@ -87,23 +86,14 @@ $n \gets 0$\;
 }
 \Return $\mathcal{F}_n$
 \end{algorithm}
-\setstretch{1.5}
-
-% \paragraph{}
-% L'algorithme de chaînage avant est une application itérative de règles, à chaque étape on applique chaque règle respectant les contraintes et on continue à la prochaine étape jusqu'à ce qu'il n'y ait plus des règles applicables. Il est important de remarquer que si une règle est applicable à l'étape $I_n$ par rapport à un homomorphisme $h$ elle sera aussi applicable à l'étape $I_{n+1}$. Pour éviter cette situation qui nous emmènerait à boucler à l'infini l'algorithme de chaînage avant n'applique une règle $R$ par rapport à un homomorphisme $h$ qu'une seule fois.\newline
-
-% Pour les extensions globale et locale, il est possible d'écrire des algorithmes génériques qui conviendront à la plupart des types de chaînage avant qui vont être présentés, à quelques exceptions près. On fournit donc un algorithme d'extension locale par défaut (algorithme \ref{algo:etendre_local_defaut}) et un algorithme d'extension globale par défaut (algorithme \ref{algo:etendre_general}).
-% \par Pour l'algorithme d'extension locale, il convient d'expliquer comment on obtient les nouveaux faits à partir d'un déclencheur. Soit une règle $R = B \rightarrow H$ et un déclencheur applicable $(R,h)$ tel que $h(B) \subset \mathcal{F}$ où $\mathcal{F}$ est la base de faits. Les nouveaux faits sont le résultat de $h^{safe}(H)$ où $h^{safe}$ est une substitution obtenue à partir de $h$ où chaque variable de $H$ qui n'est pas remplacée dans $h$ est remplacée par une variable fraîche, c'est-à-dire une variable qui n'a pas encore été utilisée dans la base de faits.
-
-
 
 Maintenant que la base commune aux différents types de \textit{chase} a été posée, on va pouvoir les présenter.
 
 \subsection{Types de \textit{chases}}\label{subsec:types_chases}
 
 Cette partie a pour objet de présenter tous les chases qui ont été implémentés dans le cadre du projet.
-\par Quatres de ces chases sont "classiques" dans la littérature scientifique du domaine. Dans l'ordre de leur capacité à éviter les redondances : l'\textit{oblivious chase} (\ref{sec:oblivious_chase}), le \textit{semi-oblivious chase} (\ref{sec:semi_oblivious_chase}), le \textit{restricted chase} (\ref{sec:restricted_chase}) et le \textit{core chase} (\ref{sec:core_chase}). 
-\par Deux autres chases, proposés par Stathis Delivorias, un doctorant de l'équipe GraphiK, vont aussi être présentés : le \textit{local core chase} (\ref{sec:local_core_chase}) et le \textit{vacuum chase} (\ref{sec:vacuum_chase}).
+\par Quatres de ces chases sont "classiques" dans la littérature scientifique du domaine. Dans l'ordre de leur capacité à éviter les redondances : l'\textit{oblivious chase}\cite{Cali:2013:TIC:2591248.2591252} (\ref{sec:oblivious_chase}), le \textit{semi-oblivious chase}\cite{Marnette:2009:GST:1559795.1559799} (\ref{sec:semi_oblivious_chase}), le \textit{restricted chase}\cite{FAGIN200589} (\ref{sec:restricted_chase}) et le \textit{core chase}\cite{Deutsch:2008:CR:1376916.1376938} (\ref{sec:core_chase}). 
+ Deux autres chases, proposés par Stathis Delivorias, un doctorant de l'équipe GraphiK, vont aussi être présentés : le \textit{local core chase} (\ref{sec:local_core_chase}) et le \textit{vacuum chase} (\ref{sec:vacuum_chase}).
 
 \subsubsection{L'Oblivious \textit{chase}}\label{sec:oblivious_chase}
 
@@ -113,7 +103,7 @@ L'\textit{oblivious chase} est le type de chaînage avant générant le plus de 
 \par Quant à l'extension globale (algorithme \ref{algo:etendre_global_oblivious}), elle se contente d'ajouter les nouveaux faits à la base de faits.
 
 
-\begin{algorithm}[H]\label{algo:est_applicable_oblivious}
+\begin{algorithm}[!h]\label{algo:est_applicable_oblivious}
 \setstretch{1}
 \caption{estApplicable (\textit{Oblivious})}
 \SetAlgoLined
@@ -123,7 +113,7 @@ L'\textit{oblivious chase} est le type de chaînage avant générant le plus de 
 \SetKwInOut{Output}{sortie}
 \Input{$(R,h)$ : un déclencheur
 \par $L$ : la liste des déclencheurs des étapes précédentes}
-\Output{vrai si le déclencheur $(R,h)$ est applicable au sens de l'\textit{oblivious chase})}
+\Output{vrai si le déclencheur $(R,h)$ est applicable au sens de l'\textit{oblivious chase}}
 \uIf{$(R,h) \in L$}
 {
     \Return $faux$
@@ -286,7 +276,7 @@ Le \textit{restricted chase} a une approche différente pour éviter les redonda
 \par Les extensions locale et globale restent quant à elles les mêmes que pour les deux algorithmes précédents.
 \par Concernant le critère d'applicabilité, il y a deux façons de l'utiliser : soit la base de faits sur laquelle on fait le test est la base de faits courante de l'étape en cours ($\mathcal{F}_n$), et dans ce cas on dira que le \textit{restricted chase} est parallèle (algorithme \ref{algo:est_applicable_restricted_parallel}). Soit il s'agit de base de faits courante à laquelle on ajoute les nouveaux faits produits dans l'étape en cours ($\mathcal{F}_n \cup nouvFaits$) et dans ce cas, on parlera de \textit{restricted chase} en largeur (algorithme \ref{algo:est_applicable_restricted_largeur}).
 
-\begin{algorithm}[H]\label{algo:est_applicable_restricted_parallel}
+\begin{algorithm}[!h]\label{algo:est_applicable_restricted_parallel}
 \setstretch{1}
 \caption{estApplicable (\textit{restricted chase} en parallèle)}
 \SetAlgoLined
@@ -302,7 +292,6 @@ Le \textit{restricted chase} a une approche différente pour éviter les redonda
     }
 \Return $vrai$
 \end{algorithm}
-\pagebreak
 \begin{algorithm}[H]\label{algo:est_applicable_restricted_largeur}
 \setstretch{1}
 \caption{estApplicable (\textit{restricted chase} en largeur)}
@@ -321,7 +310,6 @@ Le \textit{restricted chase} a une approche différente pour éviter les redonda
 \Return $vrai$
 \end{algorithm}
 \setstretch{1.5}
-
 \par La version largeur est susceptible de produire moins de redondances que la version parallèle, car elle peut permettre d'éviter des redondances produites par d'autres règles durant la même étape. Cependant, elle présente le défaut d'être non-déterministe : en effet, le résultat du chaînage avant va différer en fonction de l'ordre d'application des règles, comme cela est illustré dans l'exemple \ref{ex:restricted_largeur_non_deterministe}.
 
 \begin{example}
@@ -397,7 +385,7 @@ Cela a pour conséquence que, si une base de connaissances possède un modèle u
 \par Le \textit{core chase} utilise l'algorithme d'extension locale de l'\textit{oblivious chase} et le critère d'applicabilité du \textit{restricted chase}. Autant la version parallèle que celle en largeur peuvent être utilisées : en effet, il n'y a pas de problème de résultat modifié par l'ordre d'application des règles puisque toutes les redondances sont supprimées à la fin de chaque étape. Le résultat d'une étape sera toujours isomorphe au résultat de la même étape obtenu avec un autre ordre d'application des règles.
 
 \setstretch{1}
-\begin{algorithm}[H]\label{algo:etendre_core_chase}
+\begin{algorithm}[!h]\label{algo:etendre_core_chase}
 \caption{étendreGlobalement (\textit{core chase})}
 \SetAlgoLined
 \DontPrintSemicolon
@@ -476,10 +464,8 @@ La base de faits $\mathcal{KB}_E$ ne possède pas de modèle fini et de ce fait,
 Le \textit{local core chase} est aussi un chaînage avant qui fait appel à un calcul du \textit{core}, mais de manière plus restreinte. En effet, lors de l'extension globale, au lieu de simplement calculer le \textit{core} de la base de faits, on va d'abord geler la base de faits (c'est-à-dire transformer les variables en constantes), y ajouter les nouveaux faits pour ensuite faire le calcul du \textit{core} et enfin dégeler les variables (algorithme \ref{algo:etendre_local_core_chase}). La complexité du calcul du \textit{core} est en effet en fonction du nombre de variables susceptibles de s'envoyer un autre terme. Transformer certaines variables en constantes réduit donc le temps de calcul du \textit{core}.
 \par Le gel des variables va avoir pour conséquence que les éléments pré-existants dans la base de faits ne pourront subir de repliement, seules les redondances se trouvant dans les nouveaux faits pourront être supprimées.
 \par Comme pour le \textit{core chase}, le critère d'applicabilité est celui du \textit{restricted chase} et l'extension locale celle de l'\textit{oblivious chase}.
-
-
+\begin{algorithm}[!h]\label{algo:etendre_local_core_chase}
 \setstretch{1}
-\begin{algorithm}[H]\label{algo:etendre_local_core_chase}
 \caption{étendreGlobalement (\textit{local core chase})}
 \SetAlgoLined
 \DontPrintSemicolon
@@ -495,8 +481,7 @@ Le \textit{local core chase} est aussi un chaînage avant qui fait appel à un c
     $\mathcal{F'} \gets core(\mathcal{F'})$\;
     \Return $unfreeze(\mathcal{F'})$
 \end{algorithm}
-
-Cet algorithme va être illustré par deux exemples : à l'aide de la base $\mathcal{KB}_D$ vue précédemment, sur laquelle le \textit{core chase} s'arrête mais pas forcément le \textit{restricted chase}. Et d'une autre base de connaissances sur laquelle le \textit{core chase} s'arrête mais pas le \textit{local core chase}.
+\par Cet algorithme va être illustré par deux exemples : à l'aide de la base $\mathcal{KB}_D$ vue précédemment, sur laquelle le \textit{core chase} s'arrête mais pas forcément le \textit{restricted chase}. Et d'une autre base de connaissances sur laquelle le \textit{core chase} s'arrête mais pas le \textit{local core chase}.
 
 \begin{example}
 $\mathcal{KB}_D = (\mathcal{F} = \{p(a,b)\}, \mathcal{R} = \{R_1 = p(X,Y) \rightarrow p(Y,z) , R_2 = p(X,Y) \rightarrow p(Y,Y) \})$
@@ -558,22 +543,11 @@ Le dépiéçage est l'opération consistant à partitionner un ensemble d'atomes
 \par On peut maintenant présenter le fonctionnement du \textit{vacuum chase}. Comme les algorithmes précédents, le critère d'applicabilité est celui du \textit{restricted chase}. On va présenter une extension locale et une extension globale spécifiques au \textit{vacuum chase}. Il est cependant à note que cet algorithme est mal défini : on va présenter ici un version possible de cet algorithme, mais on pourra constater, à l'aide d'un exemple, qu'elle n'est pas sans défaut.
 \par Pour cette version, l'extension globale consiste, pour chaque pièce $p$ dans la base de faits courante $\mathcal{F}$, à tester l'existence d'un homomorphisme $h$ tel que $p$ s'envoie sur les nouveaux faits ($h(p) \subset nouvFaits$). Si tel est le cas, on retire $p$ de la base de faits courante (algorithme \ref{algo:etendre_global_vacuum_chase}).
 \par L'extension locale consiste, pour chaque déclencheur $(R = B \rightarrow H,h)$, à tester pour chaque pièce $p$ de $H$ si il existe une extension $h'$ de $h$ telle que $h'(p) \subset \mathcal{F}$. Si c'est le cas, alors cette pièce n'est pas ajoutée aux nouveaux faits (algorithme \ref{algo:etendre_local_vacuum_chase}). 
-\par On peut remarquer que si les règles sont toutes monopièces, alors l'extension locale est équivalente à utiliser le critère du \textit{restricted chase}. En effet, si les règles sont monopièces, alors le critère utilisé dans l'extension locale pour ajouter la pièce aux nouveaux faits a déjà été testé dans le critère d'applicabilité du \textit{restricted chase}. Il est par conséquent possible d'avoir une version du \textit{vacuum chase} utilisant l'extension locale par défaut à condition de rendre les règles monopièces avant de débuter la saturation.\pagebreak
+\par On peut remarquer que si les règles sont toutes monopièces, alors l'extension locale est équivalente à utiliser le critère du \textit{restricted chase}. En effet, si les règles sont monopièces, alors le critère utilisé dans l'extension locale pour ajouter la pièce aux nouveaux faits a déjà été testé dans le critère d'applicabilité du \textit{restricted chase}. Il est par conséquent possible d'avoir une version du \textit{vacuum chase} utilisant l'extension locale par défaut à condition de rendre les règles monopièces avant de débuter la saturation.
 
-% \begin{definition}[Dépiécer]
 
-% \end{definition}
-
-% Le \textit{vacuum chase} se base sur la notion de pièces d'un ensemble d'atomes. À chaque étape de saturation, on va exécuter les instructions suivantes :
-% \begin{itemize}
-%     \item Tout d'abord, on va appliquer une règle $R \in \mathcal{R}$ à l'aide du critère d'applicabilité du \textit{restricted chase} parallèle. Soit $A$ les atomes obtenus par l'application de la règle $R$.
-%     \item Ensuite, on va dépiécer $A$ et pour chaque pièce ainsi obtenue, on va tester si il existe un homomorphisme de cette pièce vers la base de faits et si tel est le cas, on supprime la pièce. On note $P$ l'ensemble des atomes restant à l'issue de cette étape ;
-%     \item Puis, on dépièce la base de faits et pour chaque pièce obtenue, on teste si il existe un homomorphisme de cette pièce vers $P$ et le cas échéant, on supprime cette pièce de la base de faits ; 
-%     \item Enfin, on ajoute $P$ à la base de faits où l'on a retiré les pièces pour obtenir la nouvelle base de faits.
-% \end{itemize}
-
-\setstretch{1}
 \begin{algorithm}[H]\label{algo:etendre_global_vacuum_chase}
+\setstretch{1}
 \caption{étendreGlobalement (\textit{vacuum chase} version A)}
 \SetAlgoLined
 \DontPrintSemicolon
@@ -595,8 +569,8 @@ Le dépiéçage est l'opération consistant à partitionner un ensemble d'atomes
     \Return $\mathcal{F'} \cup nouvFaits$
 \end{algorithm}
 
-\setstretch{1}
 \begin{algorithm}[H]\label{algo:etendre_local_vacuum_chase}
+\setstretch{1}
 \caption{étendreLocalement (\textit{vacuum chase} version A)}
 \SetAlgoLined
 \DontPrintSemicolon
@@ -638,8 +612,6 @@ On va maintenant reprendre l'exemple de la base de connaissances $\mathcal{KB}_F
 On observe qu'à l'étape 2, l'algorithme retire l'atome $p(a,Z_1)$ après avoir produit à partir de celui-ci $p(Z_1,Z_3)$, qui est un atome redondant. À l'étape suivant, cet atome est retiré, mais ayant avant cela permis de produire tous les nouveaux atomes de cette étape, qui sont aussi redondants. Et l'algorithme continue ainsi à l'infini.
 \par Une solution possible est de modifier l'algorithme d'extension globale pour, lorsqu'une variable disparaît de la base de faits, que tous les atomes qui la contiennent soient retirés des nouveaux faits ainsi que tous les atomes dans la même pièce que cette variable. 
 \par Une autre solution est une version alternative de cet algorithme, où l'extension globale serait celle de l'\textit{oblivious chase} et tout le travail de suppression des pièces se déroulerait dans l'extension locale (algorithme \ref{algo:etendre_local_vacuum_chase_B}). Cette version est cependant plus lourde en temps de calcul car elle essaie d'envoyer toutes les pièces de la base de faits vers les nouveaux faits lors de chaque application d'un déclencheur, ce qui réduit l'intérêt de cet algorithme. Mais elle présente l'intérêt de s'arrêter de la même façon que le \textit{core chase} sur l'exemple précédent.
-
-\pagebreak
 
 
 \begin{algorithm}[H]\label{algo:etendre_local_vacuum_chase_B}

@@ -6,11 +6,12 @@
     \item les redondances au sein d'une seule et même règle, que l'on nommera redondances intra-règles (\ref{sec:intra-regles}) ;
     \item les redondances de règles par rapport aux autres règles, que l'on nommera redondances inter-règles (\ref{sec:inter-regles}).
 \end{itemize}
+Nous avons étudier ces redondances à l'aide de deux articles : \textit{Redundancy Rules Reduction in Rule-Based Knowledge Bases, Yongjie Zhang, Ansheng Deng} \cite{DBLP:conf/fskd/2015} et \textit{Theory and Algorithm for Rule Base Refinement, Hai Zhuge, Yunchuan Sun, Weiyu Guo} \cite{DBLP:conf/ieaaie/2003} ainsi qu'un document \cite{MINIREGLE} écrit pendant le stage d'un membre du groupe.
 \par Puis on présentera une application s'appuyant sur Graal permettant de supprimer ces redondances (\ref{sec:conception-RAMIX}).
 
 
 \subsection{Redondances intra-règles}\label{sec:intra-regles}
-\par Avant d'entrer plus dans les détails on posera une règle de la forme $R = B \rightarrow H$ et on notera \\ $R' = frontierFreeze(R) = (B' \rightarrow H')$ la règle $R$ où la frontière est gelée. 
+\par Avant d'entrer plus dans les détails on posera une règle de la forme $R = B \rightarrow H$ et on notera $R' = \linebreak frontierFreeze(R) =  (B' \rightarrow H')$ la règle $R$ où la frontière est gelée. 
 \par On distingue deux formes de redondances intra-règles : les redondances au sein du corps de la règles (\ref{sec:redondances_corps}) et les redondances de la tête dans le corps et la tête de la règle (\ref{sec:redondances_tete_corps}).
 
 \subsubsection{Redondances dans le corps de la règle}\label{sec:redondances_corps}
@@ -107,14 +108,14 @@ va supprimer ce qui est redondant de la tête $H$ sur le corps $B$ et la tête $
 \par Pour mieux comprendre les redondances inter-règles, on peut prendre l'exemple suivant. Soit une base de règles $\mathcal{R} = \{R_1 = p(X) \rightarrow q(X), R_2 = p(X) \rightarrow t(X), R_3 = q(X) \rightarrow t(X)\}$. On analyse règle par règle si $\mathcal{R} \setminus R$ infère $R$. Clairement $R_1$ n'est pas inférée par $\mathcal{R} \setminus R_1$ car ni $R_2$ ni $R_3$ ne produisent l'atome $q(X)$. Par contre on remarque que $R_2$ est inférée par $\mathcal{R} \setminus R_2$. On débute l'analyse avec pour base de faits $\mathcal{F}$ le corps $B$ de la règle $R_2$ : $\mathcal{F} = \{p(X)\}$. On obtient donc le déclencheur : $(R_1, \{X \rightarrow X\})$ qui va produire l'atome $q(X)$. Avec ce nouvel atome on obtient $\mathcal{F}^1 = \{p(X), q(X)\}$. Lors de la deuxième étape on obtient le délancheur : $(R_3, \{X \rightarrow X\})$ qui va produire l'atome $t(X)$ et donc $\mathcal{F}^2 =  \{p(X), q(X), t(X)\}$. La tête $H = \{t(X)\}$ de $R_2$, est incluse dans $\mathcal{F}^2$. $R_2$ peut donc être inférée à partir de $\mathcal{R}\setminus R_2$. Pour finir, on remarque que $R_3$ n'est pas redondante par rapport à $\mathcal{R} \setminus R_3$ car on obtient aucun déclencheur dès la première étape. La tête $H$ de $R_3$ n'appartient donc pas à $\mathcal{F}^*$.
 
 
-\paragraph{L'algorithme \textit{SimpleRules} (\ref{algo:SimpleRules})} va supprimer toutes les règles $R = B \rightarrow H$ redondantes par rapport à une base de règles $\mathcal{R}$. Pour chaque règle $R$ on va utiliser un algorithme de chaînage avant appliqué sur la base de connaissance suivante : $\mathcal{KB} = \{B, \mathcal{R} \setminus \{R\}\} $ où $B$ est le corps de la règle $R$ à tester. Si la tête de la règle $H$ est présente dans la base de faits saturées alors on a $\mathcal{R} \setminus \{R\} \models R$. Donc $R$ est redondante par rapport à $\mathcal{R}$. Sinon on maintient $R$ dans $\mathcal{R}$. 
+\paragraph{L'algorithme \textit{interRulesRemover} (\ref{algo:SimpleRules})} va supprimer toutes les règles $R = B \rightarrow H$ redondantes par rapport à une base de règles $\mathcal{R}$. Pour chaque règle $R$ on va utiliser un algorithme de chaînage avant appliqué sur la base de connaissance suivante : $\mathcal{KB} = \{B, \mathcal{R} \setminus \{R\}\} $ où $B$ est le corps de la règle $R$ à tester. Si la tête de la règle $H$ est présente dans la base de faits saturées alors on a $\mathcal{R} \setminus \{R\} \models R$. Donc $R$ est redondante par rapport à $\mathcal{R}$. Sinon on maintient $R$ dans $\mathcal{R}$. 
 \newline
 
 
 
 \setstretch{1}
 \begin{algorithm}[H]\label{algo:SimpleRules}
-\caption{SimpleRules} %revoir le nom
+\caption{interRulesRemover} %revoir le nom
 \SetAlgoLined
 \DontPrintSemicolon
 \SetAlgoLined
@@ -132,7 +133,7 @@ va supprimer ce qui est redondant de la tête $H$ sur le corps $B$ et la tête $
          $\mathcal{F} \gets$ créerFactBase($freeze$($B$)) \Comment{voir notation \ref{not:freeze()}}
          $\mathcal{F}^* \gets$ Chase($\mathcal{F}$, $\mathcal{R} \backslash \{R\}$)\;
          
-         \uIf{\textit{il existe un homomorphisme }$ h : H \rightarrow \mathcal{F}^*$ et qu'il existe une extension $h_s : H \rightarrow \mathcal{F}^*$ de $h$}
+         \uIf{\textit{il existe un homomorphisme }$ h : frontierFreeze(H) \rightarrow \mathcal{F}^*$}
         {
             $\mathcal{R} \gets \mathcal{R} \backslash \{r\}$\;
         }
@@ -166,41 +167,67 @@ va supprimer ce qui est redondant de la tête $H$ sur le corps $B$ et la tête $
         $R' \gets HeadToBodyAndHeadRedundancies(R')$\;
         $\mathcal{R'} \gets \mathcal{R'} \cup \{R'\}$\;
     }
-    $\mathcal{R'} \gets SimpleRules(\mathcal{R'})$\;
+    $\mathcal{R'} \gets interRulesRemover(\mathcal{R'})$\;
     \Return $\mathcal{R}'$
 \end{algorithm}
 
+On va pouvoir maintenant pouvoir passer à l'implémentation des algorithmes présentés.
 
 
 
 
+\subsection{Implémentation}\label{sec:conception-RAMIX}
+    \par Dans le but de pouvoir exploiter les algorithmes de suppression de redondances, nous les avons implémentés dans un nouveau \textit{package} dans GRAAL : \textit{rule\_redundancy} (figure \ref{fig:dclasse_rule_redundancy}). On présentera dans cette partie notre travail sur ces différents algorithmes de suppressions de redondances que nous proposons. Comme vu dans les sections (\ref{sec:intra-regles} et \ref{sec:inter-regles}) présentant les différents types de redondances que l'on a étudiés, on a crée deux classes, l'une traitant les redondances intra-règles et l'autre les redondances inter-règles. 
+    
+    \par Avant d'entrer dans les détails, présentons le format DLGP (extension \textit{.dlp}) utilisé par GRAAL pour manipuler les bases de connaissances et plus particulièrement les bases de règles. 
+    
+    \paragraph{Le format DLGP}
+         \par Ce format est concis et facile à analyser. Cela peut être vu comme une extension du format couramment utilisé pour Datalog. Il s'appelle "dlgp" pour "Datalog Plus". Un fichier peut contenir quatre types d'éléments de connaissance : 
+           \begin{itemize}
+             \item les faits : $[fact_1] p(a). $
+              \item les règles existentielles : $[constraint_1] ! :- X=Y, t(X,Y,b).$
+              \item les contraintes négatives : $[rule_1] p(X) :- q(X).$
+              \item les requêtes conjonctives : $[query_1] ? (X) :- p(X), relatedTo(X,Z), t(a,Z).$
+           \end{itemize}
+    
+  
 
-\subsection{Conception et implémentations}\label{sec:conception-RAMIX}
-    \par Dans le but de pouvoir exploiter les algorithmes de suppression de redondances, nous les avons implémentés dans un nouveau \textit{package} dans GRAAL : \textit{rule\_redundancy}. On présentera dans cette partie notre travail sur ces différents algorithmes de suppressions de redondances que nous proposons. Comme vu dans les parties (\ref{sec:intra-regles} et \ref{sec:inter-regles}) présentant les différents types de redondances que l'on a étudié, on a crée deux classes, l'une traitant les redondances intra-règles et l'autre les redondances inter-règles. Mais on rentreras plus dans les détails dans ce qui suit.
-
-        \begin{figure}[H]
+        \begin{figure}[!h]
         \centering
         \includegraphics[width=\textwidth]{pictures/RedondanceDiagrammeClasse.png}
-        \caption{Diagramme de classes du paquet graal.rule_redundancy}
-        \label{fig:dclasse}
+        \caption{Diagramme de classes du paquet graal.rule\_redundancy}
+        \label{fig:dclasse_rule_redundancy}
         \end{figure}
-        
+    Maintenant que ce format a été présenté, on va aborder l'implémentation des aglorithmes.
 
-    \paragraph{Classe IntraRuleRedundancyRemover}\ \\
-        Cette classe a pour objectif d'éliminer les redondances intra-règles (\ref{sec:intra-regles}). On traite donc une règle. On applique dans cette classe l'algorithme \ref{algo:BodyRedundancyRemover} pour supprimer les redondances dans le corps et l'algorithme \ref{algo:HeadToBodyHeadRedundancyRemover} pour supprimer les redondances de la tête sur le corps et la tête de la règle traitée. A l'issue de ce traitement il est possible d'obtenir une règle dont la tête est vide. Cela a pour conséquence que si une telle règle est applicable, alors elle ne produira rien. On décide donc de supprimer la règle si sa tête disparaît. 
+    \paragraph{Classe IntraRuleRedundancyRemover}\ 
+        \par Cette classe a pour objectif d'éliminer les redondances intra-règles (section \ref{sec:intra-regles}). On traite donc une règle. On applique dans cette classe l'algorithme \textit{BodyRedundancyRemover} (algorithme \ref{algo:BodyRedundancyRemover}) pour supprimer les redondances dans le corps et l'algorithme \textit{HeadToBodyHeadRedundancyRemover} (algorithme \ref{algo:HeadToBodyHeadRedundancyRemover}) pour supprimer les redondances de la tête sur le corps et la tête de la règle traitée. Pour effectuer le calcul du \textit{core} décrit dans l'algorithme, on utilise le \textit{core} naïf. Comme le traitement se fait sur un ensemble d'atomes issu d'une règle, il n'y a pas d'intérêt à utiliser un \textit{core} plus performant. À l'issue de ce traitement il est possible d'obtenir une règle dont la tête est vide. Cela a pour conséquence que si une telle règle est applicable, alors elle ne produira rien. On décide donc de supprimer la règle si sa tête disparaît. 
          
-    \paragraph{Classe InterRuleRedundancyRemover}\ \\
-        Cette classe a pour objectif d'éliminer les redondances inter-règles (\ref{sec:intra-regles}). Dans le \textit{remover} de cette classe, on applique l'algorithme \ref{algo:rule} pour la suppression de ces redondances. Cet algorithme va tester chaque règle de la base de règles $\mathcal{R}$ pour vérifier si elle est redondante par rapport à $\mathcal{R}$, si c'était le cas on la retire de $\mathcal{R}$ et sinon il faut la laisser.
-         
-    \paragraph{Classe MainRedundancy}\ \\
-         Pour l'application des algorithmes d'élimination de redondances des règles on a créer la classe \textit{MainRedundancy} qui prend une ontologie en format \textit{.dlp} et selon les paramètres données on applique l'élimination de redondance dans chacune des règles (phase 1), pour chaque règle par rapport à tous les règles (phase 2) ou les deux (phase 1 et 2). Une nouvelle bases de règles va être créer, à la fin de l'exécution, dans un fichier \textit{.dlp}. Pour avoir les détails de chaque exécution, un fichier \textit{.txt} sera créer. Ce fichier va contenir les informations nécessaires pour la simplification de chaque règle dans la phase 1, de plus les homomorphismes et les règles utilisés pour justifier la redondance de la règle à éliminer.
+    \paragraph{Classe InterRuleRedundancyRemover}\ 
+        \par Cette classe a pour objectif d'éliminer les redondances inter-règles (section \ref{sec:intra-regles}). Dans la méthode \textit{remover}, on applique l'algorithme \ref{algo:SimpleRules}. Cet algorithme va tester chaque règle $R$ de la base de règles $\mathcal{R}$ pour vérifier si elle est redondante par rapport à $\mathcal{R} \backslash R$. 
+        \par Comme décrit dans l'algorithme on va saturer une base de faits. Cette saturation peut être infini et pourtant fournir une base de faits saturée exploitable au bout de quelques étapes permettant de décider de la redondance de la règle. Il est aussi possible qu'elle ne soit pas exploitable. On fixe donc dans tout les cas une limite d'exploration et on avant "pas à pas" dans la saturation, pour tester à chaque étape si la base de faits est exploitable. 
+        \par On a crée la classe \textit{RuleApplierForRuleRedundancy} afin de récupérer chaque règle appliquées pour la saturation. Ceci permet de fournir des informations intéressante en cas de règle détectée redondante. 
+        
+    \paragraph{Simplifier} est un exécutable que nous avons implémenté et exécutant les algorithmes présentés précédemment. 
+   % Il reprend de l'algorithme de suppressions des redondances (algorithme \ref{algo:redondances}). 
+    L'exécution de ce programme se déroule en deux phases : la suppressions des redondances intra-règles et la suppressions des redondances inter-règles. 
+        \par Le \textit{Simplfier} prends en paramètre une base de règle au format DLGP et retourne la base de règle dans le même format en ayant supprimé les deux types de redondances étudiés. Ce programme fournit aussi un fichier d'informations décrivant les redondances trouvées. Pour les redondances intra-règles, on précise quel est le type de la redondance : 
+        \begin{itemize}
+            \item corps dans le corps
+            \item tête dans la tête
+            \item tête dans le corps
+            \item tête dans le corps et la tête.
+        \end{itemize}. 
+        Pour les redondances inter-règles, si une règle est détectée comme redondante, on précisera laquelle et quelles sont les règles qui ont été appliqués pour saturer la base de faits. 
+        %Par défaut le fichier se nomme comme "infos.txt" mais il est possible de personnaliser le nom.
+        \par Dans ce programme il y a trois modes. Un mode permettant d'effectuer la phase une, un autre la phase deux et le dernier pour effectuer la totalité des phases. Ce choix a été fait car pour certaines base de règles importantes, la durée du traitement de la phase une est beaucoup plus rapide (de l'ordre de quelques minutes) que la phase deux (quelques jours sur des bases de taille importante). 
+        \par On peut ajouter aussi des paramètres limites. Comme expliqué dans la partie sur la classe \textit{InterRuleRedundancyRemover} qui correspond ici à la phase 2 du \textit{Simplifier}, il est possible de choisir un nombre d'étapes maximum. Il est donc possible de personnaliser ce choix en le passant en paramètre. On peut aussi fixer une limite d'atomes à ne pas dépasser pour la saturation effectué dans la phase 2. 
+       
          
 \subsection{Expérimentations}
 
-\par On a expérimenté notre programme \textit{MainRedundancy} sur différentes base de règles. 
-Certaines sont présente \href{https://graphik-team.github.io/graal/experiments1}{ici} \\
-
-\paragraph{Résultats de quelques tests}
+\par Le \textit{Simplifier} a été testé sur différentes bases de règles. 
+Certaines de ces bases sont disponibles sur le site de Graal\footnote{\url{https://graphik-team.github.io/graal/experiments1/}}. Le tableau ci-dessous décrit une partie des résultats obtenus.
 \begin{center}
 \begin{tabular}{|c||c|c|c|}
     \hline
@@ -214,6 +241,8 @@ Certaines sont présente \href{https://graphik-team.github.io/graal/experiments1
        U.dlp & 77  & 77 & 65      \\
      \hline
        V.dlp & 222 & 222 & 222    \\
+      \hline
+       G.dlp & 50764 & 50764 & calcul non terminé \\
      \hline
        exR.dlp & 12 & 7 & 5 	\\
      \hline
@@ -222,6 +251,4 @@ Certaines sont présente \href{https://graphik-team.github.io/graal/experiments1
 \end{tabular}
 \end{center}
 
-\par Pour chacun de ces fichier \textit{.dlp} qui représente une ontologie, on a supprimé la redondance intra-règles (phase 1) pour chacune des règles appartenant à cette ontologie. Puis on a passé à l'élimination des redondances inter-règles (phase 2). \\ \\
-Dans la première phase on peut avoir des cas où la simplification d'une règle résulte à l'élimination instantanée de cette règle, exemple à la fin de la phase 1 dans \textit{exR.dlp} on a commencer la phase 2 avec 7 règles au lieu des 12 règles initiales. De même on peut avoir des cas où on a aucune redondance intra-règles comme dans le test de \textit{V.dlp}.\\ \\
-En passant dans la deuxième phase on est certain qu'on a supprimé toutes les intra-redondances. Dans cette phase on peut avoir le cas où la présence de chaque règle est cruciale et dons pas d'élimination de règle (\textit{exR.dlp}), un autre cas c'est la détection et l'élimination de plusieurs règles inter-redondante, par exemple \textit{U.dlp}.
+\par Pour chacun de ces fichier \textit{.dlp} on a supprimé la redondance intra-règles (phase 1) à l'élimination des redondances inter-règles (phase 2). On voit que l'exemple \textit{exR.dlp} est intéressant car lors de la phase une on supprime déjà des règles de la base de règles. Cela veut dire que les règles avaient leurs têtes vides. L'exemple \textit{V.dlp} ne contient aucunes redondances explorées par le \textit{Simplifier}. Quant au fichier \textit{U.dlp}, il contient seulement des redondances inter-règles.  
